@@ -4,7 +4,7 @@ TalentDash is a career intelligence platform that provides structured, comparabl
 
 ### 🔗 Live Deployments
 - **Backend API (Render)**: [https://talentdash1.onrender.com](https://talentdash1.onrender.com)
-- **Frontend App (Vercel)**: [https://talentdash1-frontend.vercel.app](https://talentdash1-frontend.vercel.app) *(Note: Replace with exact Vercel URL upon deploy)*
+- **Frontend App (Vercel)**: [https://talentdash1.vercel.app/](https://talentdash1.vercel.app/)
 - **Database**: Neon Serverless PostgreSQL
 
 ---
