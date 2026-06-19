@@ -1,0 +1,2 @@
+ALTER TABLE "salaries" ADD CONSTRAINT "experience_years_check" CHECK (experience_years > 0 AND experience_years < 51);
+ALTER TABLE "salaries" ADD CONSTRAINT "confidence_score_check" CHECK (confidence_score >= 0.0 AND confidence_score <= 1.0);

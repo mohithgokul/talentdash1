@@ -65,7 +65,7 @@ export default async function CompanyPage({ params }: Props) {
   // Compute stats — always server-side, never hardcoded
   const primaryCurrency = companyRecords[0].currency
   const allTc = companyRecords.map((r) =>
-    convertAmount(r.total_compensation, r.currency, primaryCurrency)
+    convertAmount(Number(r.total_compensation), r.currency, primaryCurrency)
   )
   const medianTC = getMedian(allTc)
   const minTC    = Math.min(...allTc)
@@ -73,7 +73,7 @@ export default async function CompanyPage({ params }: Props) {
 
   // Level distribution
   const levelCounts = companyRecords.reduce<Record<string, number>>((acc, r) => {
-    acc[r.level_standardized] = (acc[r.level_standardized] || 0) + 1
+    acc[r.level] = (acc[r.level] || 0) + 1
     return acc
   }, {})
   const levelDist = ALL_LEVELS.map((l) => ({
@@ -85,16 +85,16 @@ export default async function CompanyPage({ params }: Props) {
   // Level bar colours reused from badge system
   const LEVEL_COLORS: Record<Level, string> = {
     'L3':        '#9CA3AF',
-    'SDE-I':     '#9CA3AF',
+    'SDE_I':     '#9CA3AF',
     'L4':        '#60A5FA',
-    'SDE-II':    '#60A5FA',
+    'SDE_II':    '#60A5FA',
     'L5':        '#818CF8',
-    'SDE-III':   '#818CF8',
+    'SDE_III':   '#818CF8',
     'IC4':       '#818CF8',
     'L6':        '#C084FC',
     'IC5':       '#C084FC',
-    'Staff':     '#C084FC',
-    'Principal': '#1E1B4B',
+    'STAFF':     '#C084FC',
+    'PRINCIPAL': '#1E1B4B',
   }
 
   const jsonLd = {
@@ -104,7 +104,7 @@ export default async function CompanyPage({ params }: Props) {
     url: `${SITE_URL}/companies/${slug}`,
     foundingDate: String(companyData.founded_year ?? ''),
     numberOfEmployees: { '@type': 'QuantitativeValue', description: companyData.headcount_range ?? '' },
-    address: { '@type': 'PostalAddress', addressLocality: companyData.hq_location ?? '' },
+    address: { '@type': 'PostalAddress', addressLocality: companyData.headquarters ?? '' },
   }
 
   return (
@@ -134,7 +134,7 @@ export default async function CompanyPage({ params }: Props) {
                 <span>·</span>
                 <span>{companyData.headcount_range} employees</span>
                 <span>·</span>
-                <span>{companyData.hq_location}</span>
+                <span>{companyData.headquarters}</span>
               </div>
             </div>
             <Link
@@ -214,19 +214,19 @@ export default async function CompanyPage({ params }: Props) {
                       <span className="line-clamp-2">{r.role}</span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <LevelBadge level={r.level_standardized} />
+                      <LevelBadge level={r.level} />
                     </td>
                     <td className="px-4 py-3.5 text-[#484848] whitespace-nowrap">{r.location}</td>
                     <td className="px-4 py-3.5 text-[#484848] whitespace-nowrap">{r.experience_years} yr</td>
                     <td className="px-4 py-3.5 text-[#484848] text-right tabular-nums whitespace-nowrap">
-                      {formatCurrency(r.base_salary, r.currency)}
+                      {formatCurrency(Number(r.base_salary), r.currency)}
                     </td>
                     <td className="px-4 py-3.5 text-[#484848] text-right tabular-nums whitespace-nowrap">
-                      {r.stock > 0 ? formatCurrency(r.stock, r.currency) : '—'}
+                      {Number(r.stock) > 0 ? formatCurrency(Number(r.stock), r.currency) : '—'}
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <span className="font-bold text-[#0369A1] text-[15px] tabular-nums">
-                        {formatCurrency(r.total_compensation, r.currency)}
+                        {formatCurrency(Number(r.total_compensation), r.currency)}
                       </span>
                     </td>
                   </tr>

@@ -26,7 +26,11 @@ export default async function ComparePage() {
   // Map to flat structure for the client
   const records = allSalaries.map(r => ({
     ...r,
-    company: r.company?.name || 'Unknown'
+    company: r.company?.name || 'Unknown',
+    base_salary: Number(r.base_salary),
+    bonus: Number(r.bonus),
+    stock: Number(r.stock),
+    total_compensation: Number(r.total_compensation),
   }))
 
   return (

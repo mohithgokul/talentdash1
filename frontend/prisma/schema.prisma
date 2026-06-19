@@ -7,44 +7,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Company {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  name            String
-  industry        String
-  founded_year    Int
-  headcount_range String
-  hq_location     String
-  salaries        Salary[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+enum Level {
+  L3
+  L4
+  L5
+  L6
+  SDE_I
+  SDE_II
+  SDE_III
+  STAFF
+  PRINCIPAL
+  IC4
+  IC5
+}
 
+enum Currency {
+  INR
+  USD
+  GBP
+  EUR
+}
+
+enum Source {
+  CONTRIBUTOR
+  SCRAPED
+  AI_INFERRED
+}
+
+model Company {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  slug            String   @unique
+  normalized_name String
+  industry        String
+  headquarters    String
+  founded_year    Int?
+  headcount_range String?
+  salaries        Salary[]
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([normalized_name])
   @@map("companies")
 }
 
 model Salary {
-  id                 String   @id @default(cuid())
-  company_id         String
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id         String   @db.Uuid
   company            Company  @relation(fields: [company_id], references: [id])
   role               String
-  level_standardized String
+  level              Level
   location           String
-  currency           String   @default("INR")
+  currency           Currency @default(INR)
   experience_years   Int
-  base_salary        Float
-  bonus              Float    @default(0)
-  stock              Float    @default(0)
-  total_compensation Float
-  source             String   @default("CONTRIBUTOR")
-  confidence_score   Float    @default(0.5)
+  base_salary        BigInt
+  bonus              BigInt   @default(0)
+  stock              BigInt   @default(0)
+  total_compensation BigInt
+  source             Source   @default(CONTRIBUTOR)
+  confidence_score   Decimal  @db.Decimal(3, 2) @default(0.5)
   is_verified        Boolean  @default(false)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  submitted_at       DateTime @default(now())
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 
-  @@index([company_id])
-  @@index([role])
-  @@index([level_standardized])
-  @@index([location])
-  @@index([total_compensation(sort: Desc)])
+  @@index([company_id, level, location])
+  @@index([total_compensation])
+  @@index([submitted_at])
+  @@index([location, level])
   @@map("salaries")
 }

@@ -44,7 +44,7 @@ export default async function SalariesPage({ searchParams }: Props) {
   const where: any = {}
   if (filters.company) where.company = { name: { contains: filters.company, mode: 'insensitive' } }
   if (filters.role) where.role = filters.role
-  if (filters.levels.length) where.level_standardized = { in: filters.levels }
+  if (filters.levels.length) where.level = { in: filters.levels }
   if (filters.location) where.location = filters.location
 
   let orderBy: any = { total_compensation: 'desc' }
@@ -85,11 +85,14 @@ export default async function SalariesPage({ searchParams }: Props) {
     console.warn("Database connection failed on Salaries page. Showing empty data. Please configure DATABASE_URL.")
   }
 
-  // Format records to match the expected interface for SalariesTable
   const records = rawRecords.map((r: any) => ({
     ...r,
     company: r.company.name,
     company_slug: r.company.slug,
+    base_salary: Number(r.base_salary),
+    bonus: Number(r.bonus),
+    stock: Number(r.stock),
+    total_compensation: Number(r.total_compensation),
   }))
 
   const roles = allRoles.map((r: any) => r.role).sort()

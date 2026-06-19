@@ -75,7 +75,7 @@ export function filterRecords(
     if (filters.company && !r.company.toLowerCase().includes(filters.company.toLowerCase()))
       return false
     if (filters.role && r.role !== filters.role) return false
-    if (filters.levels && filters.levels.length > 0 && !filters.levels.includes(r.level_standardized))
+    if (filters.levels && filters.levels.length > 0 && !filters.levels.includes(r.level))
       return false
     if (filters.location && r.location !== filters.location) return false
     return true

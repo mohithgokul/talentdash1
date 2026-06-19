@@ -11,7 +11,7 @@ interface SalaryRow {
   company: string
   company_slug?: string
   role: string
-  level_standardized: string
+  level: string
   location: string
   currency: string
   experience_years: number
@@ -77,7 +77,7 @@ export default function CompareClient({ records }: Props) {
     },
     {
       label: 'Level',
-      render: (r) => <LevelBadge level={r.level_standardized as import('@/types').Level} />,
+      render: (r) => <LevelBadge level={r.level as import('@/types').Level} />,
     },
     {
       label: 'Location',
@@ -183,7 +183,7 @@ export default function CompareClient({ records }: Props) {
                 <option value="">Select a salary record…</option>
                 {records.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.company} — {r.role} ({r.level_standardized}) ·{' '}
+                    {r.company} — {r.role} ({r.level}) ·{' '}
                     {formatCurrency(r.total_compensation, r.currency as Currency)}
                   </option>
                 ))}

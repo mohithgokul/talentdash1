@@ -4,11 +4,11 @@ export type Level =
   | 'L4'
   | 'L5'
   | 'L6'
-  | 'SDE-I'
-  | 'SDE-II'
-  | 'SDE-III'
-  | 'Staff'
-  | 'Principal'
+  | 'SDE_I'
+  | 'SDE_II'
+  | 'SDE_III'
+  | 'STAFF'
+  | 'PRINCIPAL'
   | 'IC4'
   | 'IC5'
 
@@ -24,7 +24,7 @@ export interface SalaryRecord {
   company: string
   company_slug: string
   role: string
-  level_standardized: Level
+  level: Level
   location: string
   currency: Currency
   experience_years: number
@@ -45,7 +45,7 @@ export interface CompanyProfile {
   industry: string
   founded_year: number
   headcount_range: string
-  hq_location: string
+  headquarters: string
 }
 
 // ─── Filter/sort state ─────────────────────────────────────────────────────────

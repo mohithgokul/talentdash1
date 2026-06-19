@@ -46,7 +46,7 @@ export default async function HomePage() {
     console.warn("Database connection failed. Showing empty data. Please configure DATABASE_URL.")
   }
 
-  const allTcUsd = allSalaries.map((r: any) => convertAmount(r.total_compensation, r.currency as any, 'USD'))
+  const allTcUsd = allSalaries.map((r: any) => convertAmount(Number(r.total_compensation), r.currency as any, 'USD'))
   const medianUsd = getMedian(allTcUsd)
 
   const featuredSlugs = ['google', 'amazon', 'meta', 'microsoft', 'flipkart', 'razorpay', 'nvidia', 'tcs']
@@ -121,7 +121,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {featured.map((c: any) => {
               const recs = allSalaries.filter((r: any) => r.company.slug === c.slug)
-              const tcsUsd = recs.map((r: any) => convertAmount(r.total_compensation, r.currency, 'USD'))
+              const tcsUsd = recs.map((r: any) => convertAmount(Number(r.total_compensation), r.currency, 'USD'))
               const med = getMedian(tcsUsd)
               return (
                 <Link

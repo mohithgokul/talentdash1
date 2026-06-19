@@ -1,6 +1,6 @@
 // Server Component — zero client JS shipped for the table
 import Link from 'next/link'
-import type { SalaryRecord, Currency, SortKey } from '@/types'
+import type { SalaryRecord, Currency, SortKey, Level } from '@/types'
 import { formatCurrency, convertAmount } from '@/lib/data-utils'
 import LevelBadge from '@/components/ui/LevelBadge'
 
@@ -113,7 +113,7 @@ export default function SalariesTable({ records, displayCurrency, sortKey, baseP
 
               {/* Level */}
               <td className="px-4 py-3.5">
-                <LevelBadge level={record.level_standardized} />
+                <LevelBadge level={record.level as Level} />
               </td>
 
               {/* Location */}
