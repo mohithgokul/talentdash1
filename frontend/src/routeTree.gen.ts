@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkplaceIndexRouteImport } from './routes/workplace-index'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as OffersRouteImport } from './routes/offers'
@@ -24,15 +23,11 @@ import { Route as SalariesIndexRouteImport } from './routes/salaries.index'
 import { Route as CompaniesIndexRouteImport } from './routes/companies.index'
 import { Route as ToolsSalaryCalculatorRouteImport } from './routes/tools.salary-calculator'
 import { Route as SalariesHeatmapRouteImport } from './routes/salaries.heatmap'
+import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 
 const WorkplaceIndexRoute = WorkplaceIndexRouteImport.update({
   id: '/workplace-index',
   path: '/workplace-index',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -100,6 +95,11 @@ const SalariesHeatmapRoute = SalariesHeatmapRouteImport.update({
   path: '/salaries/heatmap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompaniesSlugRoute = CompaniesSlugRouteImport.update({
+  id: '/companies/$slug',
+  path: '/companies/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,8 +110,8 @@ export interface FileRoutesByFullPath {
   '/offers': typeof OffersRoute
   '/reviews': typeof ReviewsRoute
   '/saved': typeof SavedRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/workplace-index': typeof WorkplaceIndexRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/salaries/heatmap': typeof SalariesHeatmapRoute
   '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
   '/companies/': typeof CompaniesIndexRoute
@@ -127,8 +127,8 @@ export interface FileRoutesByTo {
   '/offers': typeof OffersRoute
   '/reviews': typeof ReviewsRoute
   '/saved': typeof SavedRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/workplace-index': typeof WorkplaceIndexRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/salaries/heatmap': typeof SalariesHeatmapRoute
   '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
   '/companies': typeof CompaniesIndexRoute
@@ -145,8 +145,8 @@ export interface FileRoutesById {
   '/offers': typeof OffersRoute
   '/reviews': typeof ReviewsRoute
   '/saved': typeof SavedRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/workplace-index': typeof WorkplaceIndexRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/salaries/heatmap': typeof SalariesHeatmapRoute
   '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
   '/companies/': typeof CompaniesIndexRoute
@@ -164,8 +164,8 @@ export interface FileRouteTypes {
     | '/offers'
     | '/reviews'
     | '/saved'
-    | '/sitemap.xml'
     | '/workplace-index'
+    | '/companies/$slug'
     | '/salaries/heatmap'
     | '/tools/salary-calculator'
     | '/companies/'
@@ -181,8 +181,8 @@ export interface FileRouteTypes {
     | '/offers'
     | '/reviews'
     | '/saved'
-    | '/sitemap.xml'
     | '/workplace-index'
+    | '/companies/$slug'
     | '/salaries/heatmap'
     | '/tools/salary-calculator'
     | '/companies'
@@ -198,8 +198,8 @@ export interface FileRouteTypes {
     | '/offers'
     | '/reviews'
     | '/saved'
-    | '/sitemap.xml'
     | '/workplace-index'
+    | '/companies/$slug'
     | '/salaries/heatmap'
     | '/tools/salary-calculator'
     | '/companies/'
@@ -216,8 +216,8 @@ export interface RootRouteChildren {
   OffersRoute: typeof OffersRoute
   ReviewsRoute: typeof ReviewsRoute
   SavedRoute: typeof SavedRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WorkplaceIndexRoute: typeof WorkplaceIndexRoute
+  CompaniesSlugRoute: typeof CompaniesSlugRoute
   SalariesHeatmapRoute: typeof SalariesHeatmapRoute
   ToolsSalaryCalculatorRoute: typeof ToolsSalaryCalculatorRoute
   CompaniesIndexRoute: typeof CompaniesIndexRoute
@@ -232,13 +232,6 @@ declare module '@tanstack/react-router' {
       path: '/workplace-index'
       fullPath: '/workplace-index'
       preLoaderRoute: typeof WorkplaceIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -332,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SalariesHeatmapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/companies/$slug': {
+      id: '/companies/$slug'
+      path: '/companies/$slug'
+      fullPath: '/companies/$slug'
+      preLoaderRoute: typeof CompaniesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -344,8 +344,8 @@ const rootRouteChildren: RootRouteChildren = {
   OffersRoute: OffersRoute,
   ReviewsRoute: ReviewsRoute,
   SavedRoute: SavedRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WorkplaceIndexRoute: WorkplaceIndexRoute,
+  CompaniesSlugRoute: CompaniesSlugRoute,
   SalariesHeatmapRoute: SalariesHeatmapRoute,
   ToolsSalaryCalculatorRoute: ToolsSalaryCalculatorRoute,
   CompaniesIndexRoute: CompaniesIndexRoute,

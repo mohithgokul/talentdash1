@@ -6,6 +6,23 @@ import { Level, Currency } from '@prisma/client'
 const router = Router()
 
 /**
+ * GET /api/salaries/heatmap
+ * Geographic salary density visualization
+ */
+router.get('/heatmap', async (req: Request, res: Response) => {
+  try {
+    const data = await prisma.salary.groupBy({
+      by: ['location'],
+      _count: { _all: true },
+      _avg: { total_compensation: true }
+    })
+    return res.json(serializeBigInt(data))
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
+/**
  * GET /api/salaries
  * Query params: company, role, level, location, currency, sort, page, limit
  */
@@ -27,7 +44,9 @@ router.get('/', async (req: Request, res: Response) => {
 
     let orderBy: Record<string, string> = { total_compensation: 'desc' }
     if (sort === 'total_comp_asc') orderBy = { total_compensation: 'asc' }
-    else if (sort === 'date_desc') orderBy = { submitted_at: 'desc' }
+    else if (sort === 'date_desc' || sort === 'recent') orderBy = { submitted_at: 'desc' }
+    else if (sort === 'verified') orderBy = { is_verified: 'desc' }
+    else if (sort === 'tc_desc') orderBy = { total_compensation: 'desc' }
     else if (sort === 'base_desc') orderBy = { base_salary: 'desc' }
     else if (sort === 'base_asc') orderBy = { base_salary: 'asc' }
     else if (sort === 'exp_desc') orderBy = { experience_years: 'desc' }

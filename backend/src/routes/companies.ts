@@ -28,7 +28,10 @@ router.get('/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params
 
-    const company = await prisma.company.findUnique({ where: { slug } })
+    const company = await prisma.company.findUnique({ 
+      where: { slug },
+      include: { workplace_index: true }
+    })
     if (!company) {
       return res.status(404).json({ error: true, message: 'Company not found' })
     }

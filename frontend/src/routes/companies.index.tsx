@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Reveal } from "../components/ui/Reveal";
-import { COMPANIES, SALARIES } from "../lib/mock-data";
-import { convert, formatMoney } from "../lib/format";
+import { fetchCompanies } from "../lib/api";
 
 export const Route = createFileRoute("/companies/")({
+  loader: async () => {
+    const companies = await fetchCompanies();
+    return { companies };
+  },
   head: () => ({
     meta: [
       { title: "Companies — TalentDash" },
@@ -18,6 +21,8 @@ export const Route = createFileRoute("/companies/")({
 });
 
 function CompaniesPage() {
+  const { companies } = Route.useLoaderData();
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <Reveal><p className="text-[12px] font-semibold uppercase tracking-wider text-[#FF5A5F]">Companies</p></Reveal>
@@ -26,15 +31,12 @@ function CompaniesPage() {
       </Reveal>
       <Reveal delay={120}>
         <p className="mt-2 max-w-2xl text-[15px] text-[#484848]">
-          {COMPANIES.length} companies · {SALARIES.length} verified salary records.
+          {companies.length} connected companies with active insight data.
         </p>
       </Reveal>
 
       <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
-        {COMPANIES.map((c, i) => {
-          const records = SALARIES.filter((r) => r.company_slug === c.slug);
-          const tcs = records.map((r) => convert(r.total_compensation, r.currency, "USD")).sort((a, b) => a - b);
-          const med = tcs[Math.floor(tcs.length / 2)];
+        {companies.map((c: any, i: number) => {
           return (
             <Reveal key={c.slug} delay={i * 30}>
               <Link
@@ -48,12 +50,11 @@ function CompaniesPage() {
                   </span>
                   <div>
                     <div className="text-[15px] font-semibold text-[#222222]">{c.name}</div>
-                    <div className="text-[12px] text-[#717171]">{c.industry} · {c.hq}</div>
+                    <div className="text-[12px] text-[#717171]">{c.industry} · {c.headquarters}</div>
                   </div>
                 </div>
                 <div className="mt-4 text-[13px] text-[#484848]">
-                  {records.length} records · median{" "}
-                  <span className="font-semibold text-[#0369A1]">{med ? formatMoney(med, "USD") : "—"}</span>
+                  View insights & compensation →
                 </div>
               </Link>
             </Reveal>
