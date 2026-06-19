@@ -40,12 +40,6 @@ export const Route = createFileRoute("/salaries")({
     // In a real huge app we'd have a separate /api/filters endpoint, but this is fine for now.
     const [pageRes, allRes] = await Promise.all([
       fetchSalaries({
-        company: deps.q,
-        role: deps.role,
-        // Prisma API doesn't support multiple levels in 'level' query parameter right now, so we handle it on frontend or just pass the first one.
-        // Actually, we'll fetch everything and filter on frontend for simplicity if we want to match the previous exact behavior,
-        // OR we can pass pagination to the backend API! 
-        // Our backend API supports page, limit, company, role, location, currency, sort
         limit: PAGE_SIZE,
         page: deps.page,
         company: deps.q,
@@ -164,7 +158,7 @@ function SortMenu({ current }: { current: string }) {
         <Link
           key={val}
           to="/salaries"
-          search={(prev: Record<string, unknown>) => ({ ...prev, sort: val, page: 1 })}
+          search={(prev: Record<string, unknown>) => ({ ...prev, sort: val as "tc_desc" | "tc_asc" | "base_desc" | "base_asc" | "exp_desc" | "exp_asc", page: 1 })}
           className={`rounded px-2 py-0.5 text-[13px] ${current === val ? "bg-[#222222] text-white" : "text-[#484848] hover:bg-[#F2F2F2]"}`}
         >
           {label}
