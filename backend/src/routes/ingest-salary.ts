@@ -9,10 +9,12 @@ const router = Router()
 const salarySchema = z.object({
   company: z.string().min(1, 'Company is required'),
   role: z.string().min(1, 'Role is required'),
-  level: z.nativeEnum(Level),
+  level: z.nativeEnum(Level, { 
+    errorMap: () => ({ message: 'Level must be one of: L1, L2, L3, L4, L5, Staff, Principal, IC4, IC5' }) 
+  }),
   location: z.string().min(1, 'Location is required'),
   currency: z.nativeEnum(Currency).default('INR'),
-  experience_years: z.number().int().min(1, 'Experience must be > 0').max(50),
+  experience_years: z.number().int().min(0, 'Experience must not be negative').max(50),
   base_salary: z.number().positive('Base salary must be > 0'),
   bonus: z.number().nonnegative().optional().default(0),
   stock: z.number().nonnegative().optional().default(0),
