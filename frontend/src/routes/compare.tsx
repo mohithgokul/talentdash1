@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { fetchSalaries } from "../lib/api";
+import { SALARIES } from "../lib/mock-data";
 import { convert, formatMoney } from "../lib/format";
 import { LevelBadge } from "../components/ui/LevelBadge";
 import { Reveal } from "../components/ui/Reveal";
@@ -24,20 +24,13 @@ export const Route = createFileRoute("/compare")({
     ],
     links: [{ rel: "canonical", href: "/compare" }],
   }),
-  loader: async () => {
-    // Fetch a large list of salaries to populate the dropdowns
-    const res = await fetchSalaries({ limit: 1000 });
-    return res.data;
-  },
   component: ComparePage,
 });
 
 function ComparePage() {
   const { a, b } = Route.useSearch();
-  const allSalaries = Route.useLoaderData();
-  
-  const recordA = allSalaries.find((r) => r.id === a) ?? allSalaries[0];
-  const recordB = allSalaries.find((r) => r.id === b) ?? allSalaries[1];
+  const recordA = SALARIES.find((r) => r.id === a) ?? SALARIES[0];
+  const recordB = SALARIES.find((r) => r.id === b) ?? SALARIES[1];
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
@@ -50,29 +43,21 @@ function ComparePage() {
         </p>
       </Reveal>
 
-      {allSalaries.length < 2 ? (
-        <div className="mt-6 rounded-md border border-[#EBEBEB] bg-white p-8 text-center text-[#484848]">
-          Need at least 2 records in the database to compare.
-        </div>
-      ) : (
-        <>
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Reveal delay={80}><RecordPicker side="a" current={recordA?.id} allSalaries={allSalaries} /></Reveal>
-            <Reveal delay={120}><RecordPicker side="b" current={recordB?.id} allSalaries={allSalaries} /></Reveal>
-          </div>
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Reveal delay={80}><RecordPicker side="a" current={recordA.id} /></Reveal>
+        <Reveal delay={120}><RecordPicker side="b" current={recordB.id} /></Reveal>
+      </div>
 
-          <div className="mt-6">
-            <Reveal delay={160}>
-              {recordA && recordB && <CompareTable a={recordA} b={recordB} />}
-            </Reveal>
-          </div>
-        </>
-      )}
+      <div className="mt-6">
+        <Reveal delay={160}>
+          <CompareTable a={recordA} b={recordB} />
+        </Reveal>
+      </div>
     </div>
   );
 }
 
-function RecordPicker({ side, current, allSalaries }: { side: "a" | "b"; current: string; allSalaries: SalaryRecord[] }) {
+function RecordPicker({ side, current }: { side: "a" | "b"; current: string }) {
   const navigate = useNavigate({ from: "/compare" });
   return (
     <div className="rounded-md border border-[#EBEBEB] bg-white p-4">
@@ -88,7 +73,7 @@ function RecordPicker({ side, current, allSalaries }: { side: "a" | "b"; current
         }
         className="mt-2 w-full rounded-md border border-[#EBEBEB] bg-white px-3 py-2 text-[14px] text-[#222222] focus:border-[#FF5A5F] focus:outline-none"
       >
-        {allSalaries.map((r) => (
+        {SALARIES.map((r) => (
           <option key={r.id} value={r.id}>
             {r.company} · {r.role} · {r.level_standardized} · {r.location}
           </option>

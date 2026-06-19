@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/db'
 import { serializeBigInt } from '../lib/serialize'
-import { Level, Currency, Source } from '@prisma/client'
+import { Level, Currency, SalarySource } from '@prisma/client'
 
 const router = Router()
 
@@ -18,9 +18,11 @@ const salarySchema = z.object({
   base_salary: z.number().positive('Base salary must be > 0'),
   bonus: z.number().nonnegative().optional().default(0),
   stock: z.number().nonnegative().optional().default(0),
-  source: z.nativeEnum(Source).default('CONTRIBUTOR'),
+  source: z.nativeEnum(SalarySource).default('CONTRIBUTOR'),
   confidence_score: z.number().min(0.0).max(1.0).default(0.5)
 })
+
+type SalaryInput = z.infer<typeof salarySchema>
 
 /**
  * POST /api/ingest-salary
@@ -35,7 +37,7 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: true, field: error.path[0], message: error.message })
     }
 
-    const data = parsed.data
+    const data = parsed.data as SalaryInput
 
     // 2. Normalisation
     const normalized_name = data.company.toLowerCase().trim().replace(/[^\w\s]/g, '')
@@ -57,7 +59,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // 3. Recompute total_compensation server-side
-    const total_compensation = data.base_salary + data.bonus + data.stock
+    const total_compensation = BigInt(data.base_salary) + BigInt(data.bonus) + BigInt(data.stock)
 
     // 4. Duplicate check (within 48 hours, within 10% base salary)
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
@@ -87,9 +89,9 @@ router.post('/', async (req: Request, res: Response) => {
         location: data.location,
         currency: data.currency,
         experience_years: data.experience_years,
-        base_salary: data.base_salary,
-        bonus: data.bonus,
-        stock: data.stock,
+        base_salary: BigInt(data.base_salary),
+        bonus: BigInt(data.bonus),
+        stock: BigInt(data.stock),
         total_compensation,
         source: data.source,
         confidence_score: data.confidence_score,

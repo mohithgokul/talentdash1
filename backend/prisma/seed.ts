@@ -1,112 +1,209 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Level, Currency, SalarySource, Difficulty, DiscussionTag, OfferStatus, Region } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
+
+function normalizeCompany(raw: string): string {
+  let name = raw.toLowerCase().trim();
+  const suffixes = [
+    "pvt ltd", "private limited", "pvt. ltd.", "pvt.", "ltd.", "inc.", "inc", "llc", "llp", ".com",
+    "technologies", "technology", "solutions", "india", "bpo", "web services", "consulting", "software", "systems", "group", "global"
+  ];
+  for (const suffix of suffixes) {
+    if (name.endsWith(suffix)) {
+      name = name.slice(0, -suffix.length).trim();
+    }
+  }
+  const aliases: Record<string, string> = {
+    "tata consultancy": "tcs",
+    "tata consultancy services": "tcs",
+    "amazon web services": "aws",
+    "google india": "google",
+    "microsoft india": "microsoft",
+    "infosys bpo": "infosys",
+    "wipro technologies": "wipro",
+    "flipkart internet": "flipkart"
+  };
+  return aliases[name] || name;
+}
 
 async function main() {
-  console.log('Seeding database...')
+  console.log("Starting full database seed...");
 
-  // Clear existing
-  await prisma.salary.deleteMany()
-  await prisma.company.deleteMany()
+  // Clean DB
+  await prisma.offer.deleteMany();
+  await prisma.workplaceIndex.deleteMany();
+  await prisma.discussion.deleteMany();
+  await prisma.interview.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.salary.deleteMany();
+  await prisma.company.deleteMany();
 
-  // Normalization logic helper
-  const normalize = (name: string) => name.toLowerCase().trim().replace(/[^\w\s]/g, '').replace(/\s+/g, '-')
+  const companiesData = [
+    { rawName: "Google India", name: "Google", industry: "Internet", hq: "Mountain View, CA", founded: 1998, hc: "100k+", score: 4.5 },
+    { rawName: "Amazon Web Services", name: "Amazon", industry: "E-commerce & Cloud", hq: "Seattle, WA", founded: 1994, hc: "1M+", score: 3.8 },
+    { rawName: "Meta Platforms Inc.", name: "Meta", industry: "Social Media", hq: "Menlo Park, CA", founded: 2004, hc: "50k+", score: 4.2 },
+    { rawName: "Microsoft India", name: "Microsoft", industry: "Software", hq: "Redmond, WA", founded: 1975, hc: "100k+", score: 4.4 },
+    { rawName: "Flipkart Internet", name: "Flipkart", industry: "E-commerce", hq: "Bengaluru, India", founded: 2007, hc: "10k+", score: 3.9 },
+    { rawName: "Meesho", name: "Meesho", industry: "E-commerce", hq: "Bengaluru, India", founded: 2015, hc: "5k+", score: 4.0 },
+    { rawName: "NVIDIA Corporation", name: "NVIDIA", industry: "Semiconductors", hq: "Santa Clara, CA", founded: 1993, hc: "20k+", score: 4.7 },
+    { rawName: "Tata Consultancy Services", name: "TCS", industry: "IT Services", hq: "Mumbai, India", founded: 1968, hc: "600k+", score: 3.5 },
+    { rawName: "Infosys BPO", name: "Infosys", industry: "IT Services", hq: "Bengaluru, India", founded: 1981, hc: "300k+", score: 3.6 },
+    { rawName: "Wipro Technologies", name: "Wipro", industry: "IT Services", hq: "Bengaluru, India", founded: 1945, hc: "250k+", score: 3.4 },
+    { rawName: "Razorpay Software Pvt Ltd", name: "Razorpay", industry: "Fintech", hq: "Bengaluru, India", founded: 2014, hc: "1k+", score: 4.3 },
+    { rawName: "Zepto", name: "Zepto", industry: "Quick Commerce", hq: "Mumbai, India", founded: 2021, hc: "1k+", score: 3.9 }
+  ];
 
-  const getOrCreateCompany = async (name: string, industry: string) => {
-    const slug = normalize(name)
-    let comp = await prisma.company.findFirst({ where: { slug } })
-    if (!comp) {
-      comp = await prisma.company.create({
-        data: { name: name.trim(), slug, normalized_name: slug, industry, headquarters: 'Unknown', founded_year: 2000, headcount_range: 'Unknown' }
-      })
+  const companyMap = new Map();
+
+  for (const c of companiesData) {
+    const norm = normalizeCompany(c.rawName);
+    const company = await prisma.company.create({
+      data: {
+        name: c.name,
+        slug: norm,
+        normalized_name: norm,
+        industry: c.industry,
+        headquarters: c.hq,
+        founded_year: c.founded,
+        headcount_range: c.hc,
+        workplace_score: c.score,
+      }
+    });
+    companyMap.set(norm, company.id);
+
+    // Create WorkplaceIndex
+    await prisma.workplaceIndex.create({
+      data: {
+        company_id: company.id,
+        overall_score: c.score,
+        compensation_score: c.score,
+        culture_score: Math.max(1, c.score - 0.2),
+        growth_score: Math.min(5, c.score + 0.1),
+        wlb_score: Math.max(1, c.score - 0.4),
+        diversity_score: c.score,
+        recommend_pct: Math.floor(c.score * 20),
+        industry: c.industry,
+      }
+    });
+
+    // Create 3+ Reviews
+    for (let i = 0; i < 3; i++) {
+      await prisma.review.create({
+        data: {
+          company_id: company.id,
+          reviewer_role: "Software Engineer",
+          reviewer_location: "Bengaluru",
+          overall_rating: c.score - 0.5 + Math.random(),
+          work_life_rating: Math.max(1, c.score - 1 + Math.random() * 2),
+          comp_rating: c.score,
+          culture_rating: c.score,
+          review_text: `Working at ${c.name} is generally a good experience. The teams are smart and the impact is large.`,
+          pros: "Great brand, smart peers, good pay.",
+          cons: "Can be bureaucratic, WLB depends on team.",
+          is_verified: true,
+        }
+      });
     }
-    return comp.id
+
+    // Create 3+ Interviews
+    const difficulties = [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD];
+    for (let i = 0; i < 3; i++) {
+      await prisma.interview.create({
+        data: {
+          company_id: company.id,
+          role: "SDE",
+          difficulty: difficulties[i % 3],
+          question_text: `Design a scalable system for ${c.name} specific use-case ${i}.`,
+          skill_tags: ["System Design", "Algorithms"],
+          is_verified: true,
+        }
+      });
+    }
   }
 
-  const rawSalaries = [
-    // Normalization edge cases mapping to Google
-    { company: 'Google India', industry: 'Tech', role: 'Software Engineer', level: 'L3' as const, loc: 'Bengaluru', exp: 1, base: 1800000, bonus: 200000, stock: 1500000, curr: 'INR' as const },
-    { company: 'GOOGLE', industry: 'Tech', role: 'Software Engineer', level: 'L4' as const, loc: 'Hyderabad', exp: 3, base: 3200000, bonus: 400000, stock: 2500000, curr: 'INR' as const },
-    { company: 'google', industry: 'Tech', role: 'Software Engineer III', level: 'L5' as const, loc: 'Bengaluru', exp: 6, base: 5500000, bonus: 800000, stock: 4000000, curr: 'INR' as const },
+  // Edge cases normalization demo
+  const testNames = ["GOOGLE", "google ", "Google India"];
+  for (const tn of testNames) {
+    if (normalizeCompany(tn) !== "google") throw new Error("Normalization failed for " + tn);
+  }
+
+  // Create 60 Salaries
+  const roles = ["Software Engineer", "Backend Engineer", "Frontend Engineer", "Data Scientist", "Product Manager"];
+  const locations = ["Bengaluru", "Mumbai", "Hyderabad", "Pune", "Delhi", "San Francisco", "London"];
+  const levels = Object.values(Level);
+  
+  for (let i = 0; i < 60; i++) {
+    const cNorm = normalizeCompany(companiesData[i % companiesData.length].rawName);
+    const cid = companyMap.get(cNorm);
+    const isFaang = ["google", "amazon", "meta", "microsoft"].includes(cNorm);
     
-    // Amazon
-    { company: 'Amazon', industry: 'E-commerce', role: 'SDE I', level: 'SDE_I' as const, loc: 'Bengaluru', exp: 1, base: 1600000, bonus: 0, stock: 500000, curr: 'INR' as const }, // Edge case: zero bonus
-    { company: 'Amazon', industry: 'E-commerce', role: 'SDE II', level: 'SDE_II' as const, loc: 'Hyderabad', exp: 4, base: 3000000, bonus: 100000, stock: 1200000, curr: 'INR' as const },
-    { company: 'Amazon', industry: 'E-commerce', role: 'SDE III', level: 'SDE_III' as const, loc: 'Bengaluru', exp: 8, base: 6000000, bonus: 0, stock: 3000000, curr: 'INR' as const },
-    { company: 'Amazon', industry: 'E-commerce', role: 'Principal SDE', level: 'PRINCIPAL' as const, loc: 'Seattle', exp: 15, base: 220000, bonus: 0, stock: 400000, curr: 'USD' as const }, // Edge case: Principal level
+    let base = isFaang ? 3000000 + (i * 100000) : 1000000 + (i * 50000);
+    let bonus = Math.floor(base * 0.1);
+    let stock = isFaang ? Math.floor(base * 0.5) : Math.floor(base * 0.1);
+    let level = levels[i % levels.length];
+    
+    // Edge cases
+    if (i === 0) { bonus = 0; stock = 0; } // zero bonus/stock
+    if (i === 1) { stock = base * 3; } // very high equity
+    if (i === 2) { level = Level.PRINCIPAL; base = 8000000; stock = 15000000; } // Principal level
 
-    // Meta
-    { company: 'Meta', industry: 'Tech', role: 'E3', level: 'L3' as const, loc: 'London', exp: 1, base: 85000, bonus: 10000, stock: 30000, curr: 'USD' as const },
-    { company: 'Meta', industry: 'Tech', role: 'E4', level: 'L4' as const, loc: 'London', exp: 4, base: 120000, bonus: 15000, stock: 45000, curr: 'USD' as const },
-    { company: 'Meta', industry: 'Tech', role: 'E5', level: 'L5' as const, loc: 'New York', exp: 7, base: 180000, bonus: 25000, stock: 120000, curr: 'USD' as const },
-
-    // Microsoft
-    { company: 'Microsoft', industry: 'Tech', role: 'SDE', level: 'L59' as const, loc: 'Bengaluru', exp: 1, base: 1400000, bonus: 150000, stock: 300000, curr: 'INR' as const },
-    { company: 'Microsoft', industry: 'Tech', role: 'SDE II', level: 'L61' as const, loc: 'Hyderabad', exp: 3, base: 2400000, bonus: 250000, stock: 600000, curr: 'INR' as const },
-    { company: 'Microsoft', industry: 'Tech', role: 'Senior SDE', level: 'L63' as const, loc: 'Seattle', exp: 8, base: 160000, bonus: 30000, stock: 60000, curr: 'USD' as const },
-
-    // NVIDIA
-    { company: 'NVIDIA', industry: 'Hardware', role: 'IC1', level: 'IC1' as const, loc: 'Bengaluru', exp: 1, base: 1600000, bonus: 100000, stock: 800000, curr: 'INR' as const },
-    { company: 'NVIDIA', industry: 'Hardware', role: 'IC2', level: 'IC2' as const, loc: 'Bengaluru', exp: 3, base: 2500000, bonus: 200000, stock: 1500000, curr: 'INR' as const },
-    { company: 'NVIDIA', industry: 'Hardware', role: 'IC3', level: 'IC3' as const, loc: 'Santa Clara', exp: 6, base: 175000, bonus: 20000, stock: 180000, curr: 'USD' as const }, // High equity
-
-    // Flipkart
-    { company: 'Flipkart', industry: 'E-commerce', role: 'SDE I', level: 'SDE_I' as const, loc: 'Bengaluru', exp: 1, base: 1600000, bonus: 150000, stock: 300000, curr: 'INR' as const },
-    { company: 'Flipkart', industry: 'E-commerce', role: 'SDE II', level: 'SDE_II' as const, loc: 'Bengaluru', exp: 3, base: 2800000, bonus: 250000, stock: 600000, curr: 'INR' as const },
-    { company: 'Flipkart', industry: 'E-commerce', role: 'SDE III', level: 'SDE_III' as const, loc: 'Bengaluru', exp: 6, base: 4500000, bonus: 400000, stock: 1500000, curr: 'INR' as const },
-
-    // Meesho
-    { company: 'Meesho', industry: 'E-commerce', role: 'SDE I', level: 'SDE_I' as const, loc: 'Bengaluru', exp: 1, base: 1500000, bonus: 100000, stock: 200000, curr: 'INR' as const },
-    { company: 'Meesho', industry: 'E-commerce', role: 'SDE II', level: 'SDE_II' as const, loc: 'Bengaluru', exp: 4, base: 3200000, bonus: 300000, stock: 800000, curr: 'INR' as const },
-    { company: 'Meesho', industry: 'E-commerce', role: 'SDE III', level: 'SDE_III' as const, loc: 'Bengaluru', exp: 7, base: 4800000, bonus: 500000, stock: 1800000, curr: 'INR' as const },
-
-    // Razorpay
-    { company: 'Razorpay', industry: 'Fintech', role: 'SDE I', level: 'SDE_I' as const, loc: 'Bengaluru', exp: 1, base: 1400000, bonus: 100000, stock: 300000, curr: 'INR' as const },
-    { company: 'Razorpay', industry: 'Fintech', role: 'SDE II', level: 'SDE_II' as const, loc: 'Bengaluru', exp: 3, base: 2600000, bonus: 200000, stock: 800000, curr: 'INR' as const },
-    { company: 'Razorpay', industry: 'Fintech', role: 'Staff Engineer', level: 'STAFF' as const, loc: 'Bengaluru', exp: 9, base: 6000000, bonus: 800000, stock: 3000000, curr: 'INR' as const },
-
-    // Zepto
-    { company: 'Zepto', industry: 'Quick Commerce', role: 'SDE I', level: 'SDE_I' as const, loc: 'Mumbai', exp: 1, base: 1400000, bonus: 50000, stock: 200000, curr: 'INR' as const },
-    { company: 'Zepto', industry: 'Quick Commerce', role: 'SDE II', level: 'SDE_II' as const, loc: 'Bengaluru', exp: 3, base: 2500000, bonus: 200000, stock: 600000, curr: 'INR' as const },
-
-    // TCS
-    { company: 'TCS', industry: 'IT', role: 'Assistant System Engineer', level: 'L1' as const, loc: 'Pune', exp: 0, base: 336000, bonus: 0, stock: 0, curr: 'INR' as const }, // Edge case: zero stock and bonus
-    { company: 'Tata Consultancy Services', industry: 'IT', role: 'System Engineer', level: 'L2' as const, loc: 'Mumbai', exp: 2, base: 450000, bonus: 25000, stock: 0, curr: 'INR' as const },
-    { company: 'TCS', industry: 'IT', role: 'IT Analyst', level: 'IC3' as const, loc: 'Bengaluru', exp: 5, base: 850000, bonus: 50000, stock: 0, curr: 'INR' as const },
-
-    // Infosys
-    { company: 'Infosys', industry: 'IT', role: 'Systems Engineer', level: 'L1' as const, loc: 'Mysore', exp: 1, base: 360000, bonus: 0, stock: 0, curr: 'INR' as const },
-    { company: 'Infosys', industry: 'IT', role: 'Senior Systems Engineer', level: 'L2' as const, loc: 'Bengaluru', exp: 3, base: 550000, bonus: 30000, stock: 0, curr: 'INR' as const },
-    { company: 'Infosys', industry: 'IT', role: 'Technology Analyst', level: 'IC3' as const, loc: 'Pune', exp: 6, base: 900000, bonus: 60000, stock: 0, curr: 'INR' as const },
-
-    // Wipro
-    { company: 'Wipro', industry: 'IT', role: 'Project Engineer', level: 'L1' as const, loc: 'Bengaluru', exp: 1, base: 350000, bonus: 0, stock: 0, curr: 'INR' as const },
-    { company: 'Wipro', industry: 'IT', role: 'Senior Project Engineer', level: 'L2' as const, loc: 'Hyderabad', exp: 3, base: 500000, bonus: 20000, stock: 0, curr: 'INR' as const },
-  ]
-
-  for (const s of rawSalaries) {
-    const compId = await getOrCreateCompany(s.company, s.industry)
     await prisma.salary.create({
       data: {
-        company_id: compId,
-        role: s.role,
-        level: s.level,
-        location: s.loc,
-        currency: s.curr,
-        experience_years: s.exp,
-        base_salary: s.base,
-        bonus: s.bonus,
-        stock: s.stock,
-        total_compensation: s.base + s.bonus + s.stock,
-        source: 'CONTRIBUTOR',
+        company_id: cid,
+        role: roles[i % roles.length],
+        level: level,
+        location: locations[i % locations.length],
+        currency: locations[i % locations.length] === "San Francisco" ? Currency.USD : (locations[i % locations.length] === "London" ? Currency.GBP : Currency.INR),
+        experience_years: (i % 10) + 1,
+        base_salary: BigInt(base),
+        bonus: BigInt(bonus),
+        stock: BigInt(stock),
+        total_compensation: BigInt(base + bonus + stock),
+        source: SalarySource.CONTRIBUTOR,
         confidence_score: 0.9,
+        is_verified: true,
       }
-    })
+    });
   }
 
-  console.log(`Seeded ${rawSalaries.length} records effectively!`)
+  // Create Discussions
+  for (let i = 0; i < 15; i++) {
+    await prisma.discussion.create({
+      data: {
+        topic: `Discussion topic ${i} regarding hiring and compensation.`,
+        body: `I recently got an offer. What do you think about the current market?`,
+        tag: i % 3 === 0 ? DiscussionTag.TRENDING : (i % 2 === 0 ? DiscussionTag.HOT : DiscussionTag.NEW),
+        reply_count: Math.floor(Math.random() * 50),
+        view_count: Math.floor(Math.random() * 1000),
+        community: "Software Engineering",
+        company_id: i % 2 === 0 ? companyMap.get("google") : null,
+      }
+    });
+  }
+
+  // Create Offers
+  for (let i = 0; i < 5; i++) {
+    await prisma.offer.create({
+      data: {
+        company_name: "Google",
+        role: "Software Engineer",
+        level: Level.L4,
+        location: "Bengaluru",
+        currency: Currency.INR,
+        base_salary: BigInt(3500000),
+        bonus: BigInt(500000),
+        stock: BigInt(2000000),
+        total_compensation: BigInt(6000000),
+        offer_score: 85,
+        base_benchmark: "Above market",
+        status: OfferStatus.EVALUATED
+      }
+    });
+  }
+
+  console.log("Database seeded successfully!");
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1) })
-  .finally(async () => { await prisma.$disconnect() })
+  .catch((e) => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

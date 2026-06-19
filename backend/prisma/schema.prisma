@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── ENUMS ────────────────────────────────────────────────────────────────
+
 enum Level {
   L3
   L4
@@ -28,52 +30,192 @@ enum Currency {
   EUR
 }
 
-enum Source {
+enum SalarySource {
   CONTRIBUTOR
   SCRAPED
   AI_INFERRED
 }
 
-model Company {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  slug            String   @unique
-  normalized_name String
-  industry        String
-  headquarters    String
-  founded_year    Int?
-  headcount_range String?
-  salaries        Salary[]
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  @@index([normalized_name])
-  @@map("companies")
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
 }
 
+enum DiscussionTag {
+  TRENDING
+  HOT
+  NEW
+}
+
+enum OfferStatus {
+  PENDING
+  EVALUATED
+}
+
+enum Region {
+  GLOBAL
+  INDIA
+  US
+  UK
+}
+
+// ─── COMPANY ──────────────────────────────────────────────────────────────
+
+model Company {
+  id               String   @id @default(uuid())
+  name             String                        // display: "Google India"
+  slug             String   @unique              // "google"
+  normalized_name  String   @unique              // "google" (lowercase, indexed)
+  industry         String?
+  headquarters     String?
+  founded_year     Int?
+  headcount_range  String?
+  logo_url         String?
+  workplace_score  Decimal? @db.Decimal(3,1)     // composite 0.0–5.0
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  salaries         Salary[]
+  reviews          Review[]
+  interviews       Interview[]
+  discussions      Discussion[]
+  workplace_index  WorkplaceIndex?
+
+  @@index([normalized_name])
+}
+
+// ─── SALARY ───────────────────────────────────────────────────────────────
+
 model Salary {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  company_id         String   @db.Uuid
-  company            Company  @relation(fields: [company_id], references: [id])
-  role               String
-  level              Level
-  location           String
-  currency           Currency @default(INR)
-  experience_years   Int
-  base_salary        BigInt
-  bonus              BigInt   @default(0)
-  stock              BigInt   @default(0)
-  total_compensation BigInt
-  source             Source   @default(CONTRIBUTOR)
-  confidence_score   Decimal  @db.Decimal(3, 2) @default(0.5)
-  is_verified        Boolean  @default(false)
-  submitted_at       DateTime @default(now())
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  id                  String       @id @default(uuid())
+  company_id          String
+  company             Company      @relation(fields: [company_id], references: [id])
+  role                String
+  level               Level
+  location            String
+  currency            Currency
+  experience_years    Int
+  base_salary         BigInt
+  bonus               BigInt       @default(0)
+  stock               BigInt       @default(0)
+  total_compensation  BigInt                     // ALWAYS computed, never trusted
+  source              SalarySource
+  confidence_score    Decimal      @db.Decimal(3,2)
+  is_verified         Boolean      @default(false)
+  submitted_at        DateTime     @default(now())
 
   @@index([company_id, level, location])
   @@index([total_compensation])
   @@index([submitted_at])
   @@index([location, level])
-  @@map("salaries")
+}
+
+// ─── REVIEW ───────────────────────────────────────────────────────────────
+
+model Review {
+  id               String   @id @default(uuid())
+  company_id       String
+  company          Company  @relation(fields: [company_id], references: [id])
+  reviewer_role    String                        // "Software Engineer"
+  reviewer_location String?
+  overall_rating   Decimal  @db.Decimal(2,1)    // 1.0–5.0
+  work_life_rating Decimal  @db.Decimal(2,1)
+  comp_rating      Decimal  @db.Decimal(2,1)
+  culture_rating   Decimal  @db.Decimal(2,1)
+  review_text      String
+  pros             String?
+  cons             String?
+  is_verified      Boolean  @default(false)
+  submitted_at     DateTime @default(now())
+
+  @@index([company_id])
+  @@index([submitted_at])
+  @@index([overall_rating])
+}
+
+// ─── INTERVIEW ────────────────────────────────────────────────────────────
+
+model Interview {
+  id             String     @id @default(uuid())
+  company_id     String
+  company        Company    @relation(fields: [company_id], references: [id])
+  role           String
+  difficulty     Difficulty
+  question_text  String
+  answer_count   Int        @default(0)
+  skill_tags     String[]                        // ["Algorithms", "System Design"]
+  is_verified    Boolean    @default(false)
+  submitted_at   DateTime   @default(now())
+
+  @@index([company_id])
+  @@index([role])
+  @@index([difficulty])
+  @@index([submitted_at])
+}
+
+// ─── DISCUSSION (COMMUNITY) ───────────────────────────────────────────────
+
+model Discussion {
+  id           String        @id @default(uuid())
+  company_id   String?
+  company      Company?      @relation(fields: [company_id], references: [id])
+  topic        String
+  body         String?
+  tag          DiscussionTag @default(NEW)
+  reply_count  Int           @default(0)
+  view_count   Int           @default(0)
+  community    String?                           // "Software Engineering"
+  is_pinned    Boolean       @default(false)
+  created_at   DateTime      @default(now())
+
+  @@index([company_id])
+  @@index([tag])
+  @@index([created_at])
+  @@index([community])
+}
+
+// ─── WORKPLACE INDEX ──────────────────────────────────────────────────────
+
+model WorkplaceIndex {
+  id                    String   @id @default(uuid())
+  company_id            String   @unique
+  company               Company  @relation(fields: [company_id], references: [id])
+  overall_score         Decimal  @db.Decimal(3,1)
+  compensation_score    Decimal  @db.Decimal(3,1)
+  culture_score         Decimal  @db.Decimal(3,1)
+  growth_score          Decimal  @db.Decimal(3,1)
+  wlb_score             Decimal  @db.Decimal(3,1)
+  diversity_score       Decimal  @db.Decimal(3,1)
+  recommend_pct         Int                          // 0–100
+  industry              String?
+  rank_overall          Int?
+  rank_best_paying      Int?
+  rank_wlb              Int?
+  updated_at            DateTime @updatedAt
+}
+
+// ─── OFFER ────────────────────────────────────────────────────────────────
+
+model Offer {
+  id                String      @id @default(uuid())
+  company_name      String
+  role              String
+  level             Level
+  location          String
+  currency          Currency
+  base_salary       BigInt
+  bonus             BigInt      @default(0)
+  stock             BigInt      @default(0)
+  total_compensation BigInt
+  benefits_text     String?
+  offer_score       Int?                            // 0–100 computed score
+  base_benchmark    String?                         // "Above market" | "Average" | "Below market"
+  bonus_benchmark   String?
+  equity_benchmark  String?
+  status            OfferStatus @default(PENDING)
+  created_at        DateTime    @default(now())
+
+  @@index([company_name])
+  @@index([offer_score])
 }

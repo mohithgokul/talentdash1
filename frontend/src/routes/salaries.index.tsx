@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { fetchSalaries } from "../lib/api";
+import { SALARIES, uniqueLevels, uniqueLocations, uniqueRoles } from "../lib/mock-data";
 import { convert } from "../lib/format";
 import { SalaryTable } from "../components/features/SalaryTable";
 import { FilterBar } from "../components/features/FilterBar";
 import { Reveal } from "../components/ui/Reveal";
+import { SalariesHub } from "../components/features/SalariesHub";
 
 const PAGE_SIZE = 25;
 
@@ -22,7 +23,7 @@ const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
 });
 
-export const Route = createFileRoute("/salaries")({
+export const Route = createFileRoute("/salaries/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
@@ -33,61 +34,70 @@ export const Route = createFileRoute("/salaries")({
       { property: "og:url", content: "/salaries" },
     ],
     links: [{ rel: "canonical", href: "/salaries" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Dataset",
+          name: "TalentDash Tech Salary Records",
+          description: "Verified salary records for technology roles across India and global markets.",
+          keywords: ["salary", "compensation", "tech", "India", "levels"],
+          creator: { "@type": "Organization", name: "TalentDash" },
+        }),
+      },
+    ],
   }),
-  loaderDeps: ({ search }) => search,
-  loader: async ({ deps }) => {
-    // We fetch one large payload of data to populate the table AND filter options.
-    // In a real huge app we'd have a separate /api/filters endpoint, but this is fine for now.
-    const [pageRes, allRes] = await Promise.all([
-      fetchSalaries({
-        limit: PAGE_SIZE,
-        page: deps.page,
-        company: deps.q,
-        role: deps.role,
-        location: deps.location,
-        sort: deps.sort
-      }),
-      fetchSalaries({ limit: 1000 }) // To compute all unique filter options
-    ]);
-
-    // Compute unique filters from ALL data
-    const uniqueRoles = Array.from(new Set(allRes.data.map((r) => r.role))).sort();
-    const uniqueLocations = Array.from(new Set(allRes.data.map((r) => r.location))).sort();
-    const uniqueLevels = Array.from(new Set(allRes.data.map((r) => r.level_standardized)));
-
-    return {
-      salaries: pageRes.data,
-      meta: pageRes.meta,
-      filters: { uniqueRoles, uniqueLocations, uniqueLevels }
-    };
-  },
   component: SalariesPage,
 });
 
 function SalariesPage() {
   const { q, role, levels, location, currency, sort, page } = Route.useSearch();
-  const { salaries, meta, filters } = Route.useLoaderData();
 
-  // If the user selected levels, our backend didn't filter by multiple levels, so we do a quick client-side pass:
-  let finalSalaries = salaries;
-  if (levels.length > 0) {
-    finalSalaries = finalSalaries.filter(s => levels.includes(s.level_standardized));
-  }
+  let rows = SALARIES.slice();
+  if (q) rows = rows.filter((r) => r.company.toLowerCase().includes(q.toLowerCase()));
+  if (role) rows = rows.filter((r) => r.role === role);
+  if (levels.length) rows = rows.filter((r) => levels.includes(r.level_standardized));
+  if (location) rows = rows.filter((r) => r.location === location);
 
-  const total = meta.total;
-  const totalPages = meta.totalPages;
-  const current = meta.page;
-  const start = (current - 1) * meta.limit;
+  const tcOf = (r: typeof rows[number]) => convert(r.total_compensation, r.currency, currency);
+  const baseOf = (r: typeof rows[number]) => convert(r.base_salary, r.currency, currency);
+
+  rows.sort((a, b) => {
+    switch (sort) {
+      case "tc_asc":   return tcOf(a) - tcOf(b);
+      case "base_desc":return baseOf(b) - baseOf(a);
+      case "base_asc": return baseOf(a) - baseOf(b);
+      case "exp_desc": return b.experience_years - a.experience_years;
+      case "exp_asc":  return a.experience_years - b.experience_years;
+      default:         return tcOf(b) - tcOf(a);
+    }
+  });
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+  const start = (current - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(start, start + PAGE_SIZE);
   const showingFrom = total === 0 ? 0 : start + 1;
-  const showingTo = Math.min(start + meta.limit, total);
+  const showingTo = Math.min(start + PAGE_SIZE, total);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <Reveal>
-        <h1 className="text-[36px] font-bold leading-[1.1] text-[#222222]">Tech Salaries</h1>
+        <p className="text-[12px] font-semibold uppercase tracking-wider text-[#FF5A5F]">Salaries</p>
+      </Reveal>
+      <Reveal delay={40}>
+        <h1 className="mt-2 text-[36px] font-bold leading-[1.1] text-[#222222]">Tech Salaries</h1>
+      </Reveal>
+
+      <SalariesHub />
+
+      <Reveal>
+        <h2 className="mt-14 text-[22px] font-semibold text-[#222222]">Browse records</h2>
       </Reveal>
       <Reveal delay={60}>
-        <p className="mt-2 max-w-2xl text-[15px] text-[#484848]">
+        <p className="mt-1 max-w-2xl text-[14px] text-[#484848]">
           {total} records · sorted by{" "}
           <SortMenu current={sort} />
         </p>
@@ -97,15 +107,15 @@ function SalariesPage() {
         <Reveal delay={80}>
           <FilterBar
             initial={{ q, role, levels, location, currency }}
-            roles={filters.uniqueRoles}
-            locations={filters.uniqueLocations}
-            levels={filters.uniqueLevels}
+            roles={uniqueRoles()}
+            locations={uniqueLocations()}
+            levels={uniqueLevels()}
           />
         </Reveal>
       </div>
 
       <div className="mt-6">
-        {finalSalaries.length === 0 ? (
+        {pageRows.length === 0 ? (
           <div className="rounded-md border border-[#EBEBEB] bg-white p-10 text-center">
             <p className="text-[15px] text-[#222222]">No records found for these filters.</p>
             <Link to="/salaries" search={{} as never} className="mt-3 inline-block text-[14px] font-medium text-[#FF5A5F] hover:underline">
@@ -113,7 +123,7 @@ function SalariesPage() {
             </Link>
           </div>
         ) : (
-          <SalaryTable rows={finalSalaries} displayCurrency={currency} startIndex={start} />
+          <SalaryTable rows={pageRows} displayCurrency={currency} startIndex={start} />
         )}
       </div>
 
@@ -158,7 +168,7 @@ function SortMenu({ current }: { current: string }) {
         <Link
           key={val}
           to="/salaries"
-          search={(prev: Record<string, unknown>) => ({ ...prev, sort: val as "tc_desc" | "tc_asc" | "base_desc" | "base_asc" | "exp_desc" | "exp_asc", page: 1 })}
+          search={(prev: Record<string, unknown>) => ({ ...prev, sort: val, page: 1 })}
           className={`rounded px-2 py-0.5 text-[13px] ${current === val ? "bg-[#222222] text-white" : "text-[#484848] hover:bg-[#F2F2F2]"}`}
         >
           {label}

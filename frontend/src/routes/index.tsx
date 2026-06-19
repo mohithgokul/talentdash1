@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Reveal } from "../components/ui/Reveal";
-import { fetchSalaries, fetchCompanies } from "../lib/api";
+import { SALARIES, COMPANIES } from "../lib/mock-data";
 import { convert, formatMoney } from "../lib/format";
 
 export const Route = createFileRoute("/")({
@@ -14,47 +14,14 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
-  loader: async () => {
-    const [salariesRes, companiesRes] = await Promise.all([
-      fetchSalaries({ limit: 100 }),
-      fetchCompanies()
-    ]);
-    return {
-      salaries: salariesRes.data,
-      totalRecords: salariesRes.meta.total,
-      companies: companiesRes
-    };
-  },
   component: Home,
 });
 
 function Home() {
-  const { salaries, totalRecords, companies } = Route.useLoaderData();
-  const totalCompanies = companies.length;
-  const allTcUsd = salaries.map((r) => convert(r.total_compensation, r.currency, "USD")).sort((a, b) => a - b);
-  const medianUsd = allTcUsd.length > 0 ? allTcUsd[Math.floor(allTcUsd.length / 2)] : 0;
-
-  // Compute Level counts
-  const levelCounts: Record<string, number> = {};
-  const locationCounts: Record<string, number> = {};
-  for (const s of salaries) {
-    levelCounts[s.level_standardized] = (levelCounts[s.level_standardized] || 0) + 1;
-    locationCounts[s.location] = (locationCounts[s.location] || 0) + 1;
-  }
-
-  // Define logical order for levels
-  const orderedLevelKeys = ["L1", "L2", "L3", "L4", "L5", "L6", "IC1", "IC2", "IC3", "IC4", "IC5", "SDE_I", "SDE_II", "SDE_III", "STAFF", "PRINCIPAL"];
-  const availableLevels = orderedLevelKeys.filter(k => levelCounts[k]);
-  
-  const formatLevel = (l: string) => {
-    if (l === 'STAFF') return 'Staff';
-    if (l === 'PRINCIPAL') return 'Principal';
-    return l.replace('_', '-');
-  };
-
-  const topLocations = Object.entries(locationCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
+  const totalRecords = SALARIES.length;
+  const totalCompanies = COMPANIES.length;
+  const allTcUsd = SALARIES.map((r) => convert(r.total_compensation, r.currency, "USD")).sort((a, b) => a - b);
+  const medianUsd = allTcUsd[Math.floor(allTcUsd.length / 2)];
 
   return (
     <div>
@@ -106,10 +73,10 @@ function Home() {
           <p className="mt-2 text-[15px] text-[#484848]">Jump into compensation data for any of these.</p>
         </Reveal>
         <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {companies.slice(0, 8).map((c, i) => {
-            const records = salaries.filter((r) => r.company_slug === c.slug);
+          {COMPANIES.slice(0, 8).map((c, i) => {
+            const records = SALARIES.filter((r) => r.company_slug === c.slug);
             const tcs = records.map((r) => convert(r.total_compensation, r.currency, "USD"));
-            const med = tcs.length > 0 ? tcs.sort((a, b) => a - b)[Math.floor(tcs.length / 2)] : 0;
+            const med = tcs.sort((a, b) => a - b)[Math.floor(tcs.length / 2)];
             return (
               <Reveal key={c.slug} delay={i * 40}>
                 <Link
@@ -127,70 +94,6 @@ function Home() {
               </Reveal>
             );
           })}
-        </div>
-      </section>
-
-      {/* Discovery Section (Mockup Match) */}
-      <section className="border-t border-[#EBEBEB] bg-[#F7F7F7] py-16">
-        <style>{`
-          .location-scroll::-webkit-scrollbar {
-            height: 8px;
-          }
-          .location-scroll::-webkit-scrollbar-track {
-            background: #EBEBEB;
-            border-radius: 4px;
-            margin: 0 4px;
-          }
-          .location-scroll::-webkit-scrollbar-thumb {
-            background: #999999;
-            border-radius: 4px;
-          }
-        `}</style>
-        <div className="mx-auto max-w-7xl px-6">
-          <Reveal>
-            <div className="flex items-center justify-between">
-              <h3 className="text-[22px] font-bold text-[#222222]">Browse by Level</h3>
-              <Link to="/salaries" className="text-[14px] text-[#FF5A5F] hover:underline">View all →</Link>
-            </div>
-          </Reveal>
-          <Reveal delay={60}>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {availableLevels.map(lvl => (
-                <Link
-                  key={lvl}
-                  to="/salaries"
-                  search={(prev: Record<string, unknown>) => ({ ...prev, levels: [lvl] })}
-                  className="rounded-full border border-[#EBEBEB] bg-transparent px-4 py-1.5 text-[14px] text-[#484848] transition-colors hover:bg-white hover:border-[#D1D1D1]"
-                >
-                  {formatLevel(lvl)} ({levelCounts[lvl]})
-                </Link>
-              ))}
-            </div>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <div className="mt-16 flex items-center justify-between">
-              <h3 className="text-[22px] font-bold text-[#222222]">Popular Locations</h3>
-              <Link to="/salaries" className="text-[14px] text-[#FF5A5F] hover:underline">View all →</Link>
-            </div>
-          </Reveal>
-          <Reveal delay={180}>
-            <div className="location-scroll mt-6 flex gap-4 overflow-x-auto pb-6 snap-x">
-              {topLocations.map(([loc, count]) => (
-                <Link
-                  key={loc}
-                  to="/salaries"
-                  search={(prev: Record<string, unknown>) => ({ ...prev, location: loc })}
-                  className="min-w-[160px] flex-shrink-0 snap-start rounded-xl border border-[#EBEBEB] bg-white p-5 transition-shadow hover:shadow-sm"
-                >
-                  <div className="text-[15px] font-bold text-[#222222]">{loc}</div>
-                  <div className="mt-2 text-[13px] text-[#717171]">
-                    {count} {count === 1 ? 'salary' : 'salaries'}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Reveal>
         </div>
       </section>
     </div>

@@ -9,20 +9,55 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkplaceIndexRouteImport } from './routes/workplace-index'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SalariesRouteImport } from './routes/salaries'
+import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as OffersRouteImport } from './routes/offers'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as InterviewsRouteImport } from './routes/interviews'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
+import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as SalariesIndexRouteImport } from './routes/salaries.index'
+import { Route as CompaniesIndexRouteImport } from './routes/companies.index'
+import { Route as ToolsSalaryCalculatorRouteImport } from './routes/tools.salary-calculator'
+import { Route as SalariesHeatmapRouteImport } from './routes/salaries.heatmap'
 
+const WorkplaceIndexRoute = WorkplaceIndexRouteImport.update({
+  id: '/workplace-index',
+  path: '/workplace-index',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SalariesRoute = SalariesRouteImport.update({
-  id: '/salaries',
-  path: '/salaries',
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InterviewsRoute = InterviewsRouteImport.update({
+  id: '/interviews',
+  path: '/interviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -30,68 +65,175 @@ const CompareRoute = CompareRouteImport.update({
   path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CompaniesSlugRoute = CompaniesSlugRouteImport.update({
-  id: '/companies/$slug',
-  path: '/companies/$slug',
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalariesIndexRoute = SalariesIndexRouteImport.update({
+  id: '/salaries/',
+  path: '/salaries/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompaniesIndexRoute = CompaniesIndexRouteImport.update({
+  id: '/companies/',
+  path: '/companies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsSalaryCalculatorRoute = ToolsSalaryCalculatorRouteImport.update({
+  id: '/tools/salary-calculator',
+  path: '/tools/salary-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalariesHeatmapRoute = SalariesHeatmapRouteImport.update({
+  id: '/salaries/heatmap',
+  path: '/salaries/heatmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
   '/compare': typeof CompareRoute
-  '/salaries': typeof SalariesRoute
+  '/interviews': typeof InterviewsRoute
+  '/jobs': typeof JobsRoute
+  '/offers': typeof OffersRoute
+  '/reviews': typeof ReviewsRoute
+  '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/companies/$slug': typeof CompaniesSlugRoute
+  '/workplace-index': typeof WorkplaceIndexRoute
+  '/salaries/heatmap': typeof SalariesHeatmapRoute
+  '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
+  '/companies/': typeof CompaniesIndexRoute
+  '/salaries/': typeof SalariesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
   '/compare': typeof CompareRoute
-  '/salaries': typeof SalariesRoute
+  '/interviews': typeof InterviewsRoute
+  '/jobs': typeof JobsRoute
+  '/offers': typeof OffersRoute
+  '/reviews': typeof ReviewsRoute
+  '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/companies/$slug': typeof CompaniesSlugRoute
+  '/workplace-index': typeof WorkplaceIndexRoute
+  '/salaries/heatmap': typeof SalariesHeatmapRoute
+  '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
+  '/companies': typeof CompaniesIndexRoute
+  '/salaries': typeof SalariesIndexRoute
+  '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
   '/compare': typeof CompareRoute
-  '/salaries': typeof SalariesRoute
+  '/interviews': typeof InterviewsRoute
+  '/jobs': typeof JobsRoute
+  '/offers': typeof OffersRoute
+  '/reviews': typeof ReviewsRoute
+  '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/companies/$slug': typeof CompaniesSlugRoute
+  '/workplace-index': typeof WorkplaceIndexRoute
+  '/salaries/heatmap': typeof SalariesHeatmapRoute
+  '/tools/salary-calculator': typeof ToolsSalaryCalculatorRoute
+  '/companies/': typeof CompaniesIndexRoute
+  '/salaries/': typeof SalariesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/community'
     | '/compare'
-    | '/salaries'
+    | '/interviews'
+    | '/jobs'
+    | '/offers'
+    | '/reviews'
+    | '/saved'
     | '/sitemap.xml'
-    | '/companies/$slug'
+    | '/workplace-index'
+    | '/salaries/heatmap'
+    | '/tools/salary-calculator'
+    | '/companies/'
+    | '/salaries/'
+    | '/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/compare' | '/salaries' | '/sitemap.xml' | '/companies/$slug'
+  to:
+    | '/'
+    | '/community'
+    | '/compare'
+    | '/interviews'
+    | '/jobs'
+    | '/offers'
+    | '/reviews'
+    | '/saved'
+    | '/sitemap.xml'
+    | '/workplace-index'
+    | '/salaries/heatmap'
+    | '/tools/salary-calculator'
+    | '/companies'
+    | '/salaries'
+    | '/tools'
   id:
     | '__root__'
     | '/'
+    | '/community'
     | '/compare'
-    | '/salaries'
+    | '/interviews'
+    | '/jobs'
+    | '/offers'
+    | '/reviews'
+    | '/saved'
     | '/sitemap.xml'
-    | '/companies/$slug'
+    | '/workplace-index'
+    | '/salaries/heatmap'
+    | '/tools/salary-calculator'
+    | '/companies/'
+    | '/salaries/'
+    | '/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CommunityRoute: typeof CommunityRoute
   CompareRoute: typeof CompareRoute
-  SalariesRoute: typeof SalariesRoute
+  InterviewsRoute: typeof InterviewsRoute
+  JobsRoute: typeof JobsRoute
+  OffersRoute: typeof OffersRoute
+  ReviewsRoute: typeof ReviewsRoute
+  SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  CompaniesSlugRoute: typeof CompaniesSlugRoute
+  WorkplaceIndexRoute: typeof WorkplaceIndexRoute
+  SalariesHeatmapRoute: typeof SalariesHeatmapRoute
+  ToolsSalaryCalculatorRoute: typeof ToolsSalaryCalculatorRoute
+  CompaniesIndexRoute: typeof CompaniesIndexRoute
+  SalariesIndexRoute: typeof SalariesIndexRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workplace-index': {
+      id: '/workplace-index'
+      path: '/workplace-index'
+      fullPath: '/workplace-index'
+      preLoaderRoute: typeof WorkplaceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -99,11 +241,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/salaries': {
-      id: '/salaries'
-      path: '/salaries'
-      fullPath: '/salaries'
-      preLoaderRoute: typeof SalariesRouteImport
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interviews': {
+      id: '/interviews'
+      path: '/interviews'
+      fullPath: '/interviews'
+      preLoaderRoute: typeof InterviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -113,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -120,11 +297,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/companies/$slug': {
-      id: '/companies/$slug'
-      path: '/companies/$slug'
-      fullPath: '/companies/$slug'
-      preLoaderRoute: typeof CompaniesSlugRouteImport
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salaries/': {
+      id: '/salaries/'
+      path: '/salaries'
+      fullPath: '/salaries/'
+      preLoaderRoute: typeof SalariesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/companies/': {
+      id: '/companies/'
+      path: '/companies'
+      fullPath: '/companies/'
+      preLoaderRoute: typeof CompaniesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/salary-calculator': {
+      id: '/tools/salary-calculator'
+      path: '/tools/salary-calculator'
+      fullPath: '/tools/salary-calculator'
+      preLoaderRoute: typeof ToolsSalaryCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salaries/heatmap': {
+      id: '/salaries/heatmap'
+      path: '/salaries/heatmap'
+      fullPath: '/salaries/heatmap'
+      preLoaderRoute: typeof SalariesHeatmapRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -132,10 +337,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CommunityRoute: CommunityRoute,
   CompareRoute: CompareRoute,
-  SalariesRoute: SalariesRoute,
+  InterviewsRoute: InterviewsRoute,
+  JobsRoute: JobsRoute,
+  OffersRoute: OffersRoute,
+  ReviewsRoute: ReviewsRoute,
+  SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  CompaniesSlugRoute: CompaniesSlugRoute,
+  WorkplaceIndexRoute: WorkplaceIndexRoute,
+  SalariesHeatmapRoute: SalariesHeatmapRoute,
+  ToolsSalaryCalculatorRoute: ToolsSalaryCalculatorRoute,
+  CompaniesIndexRoute: CompaniesIndexRoute,
+  SalariesIndexRoute: SalariesIndexRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
