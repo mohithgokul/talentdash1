@@ -46,10 +46,10 @@ TalentDash is a comprehensive career intelligence platform that processes and no
 
 ## ✨ Core Features
 
-- **Salary Insights**: Browse through 60+ verified records across 12 top tech companies (FAANG, Unicorns, and WITCH).
-- **Company Profiles**: Detailed pages featuring the true statistical Median Total Compensation and exact level distributions.
-- **Side-by-Side Comparison**: Evaluate two specific salary records via URL-shareable routes (`/compare?s1=UUID&s2=UUID`) featuring automated delta calculations.
-- **Strict Ingestion Pipeline**: Secure REST API enforcing normalization (e.g., mapping "Google India" -> `google`) and rigidly computing Total Compensation securely on the server-side.
+- **Salary Insights & Heatmaps**: Browse through 160+ verified records across 12 top tech companies with geographic salary density visualization.
+- **Company Profiles & Workplace Index**: Detailed pages featuring the true statistical Median Total Compensation, exact level distributions, and the comprehensive **Workplace Index** (scoring WLB, Culture, Compensation).
+- **Reviews & Interviews Tracking**: Native support for employee reviews and interview experiences with difficulty tags.
+- **Compensation Offers & Tools**: Track new offer data and access tools like take-home calculators and ESPP modeling.
 - **Intelligent Deduplication**: Auto-rejects duplicate records submitted within 48 hours to preserve database integrity.
 
 ---
@@ -149,16 +149,17 @@ Visit `http://localhost:8080` to experience the application.
 │                   Vite + React SPA                     │
 │  (Hydrates static UI rapidly, executing client-side)   │
 ├──────────┬──────────┬──────────┬───────────────────────┤
-│  Home    │ /salaries│/companies│   /compare            │
-│  (SPA)   │ (Filters)│  [slug]  │ (URL-based Delta)     │
+│  Home    │ /salaries│/companies│   /jobs /reviews      │
+│  (SPA)   │ (Filters)│  [slug]  │   /interviews         │
 ├──────────┴──────────┴──────────┴───────────────────────┤
 │               HTTP Boundary (CORS Allowed)             │
 ├────────────────────────────────────────────────────────┤
 │                 Express.js Backend API                 │
 │  POST /api/ingest-salary (Validation & BigInt Parsing) │
-│  GET  /api/salaries (Pagination & ILIKE search)        │
-│  GET  /api/companies/[slug] (Median & Aggregations)    │
-│  GET  /api/compare (Server-side lookups)               │
+│  GET  /api/salaries, /api/salaries/heatmap             │
+│  GET  /api/companies/[slug] (Median & Workplace Index) │
+│  GET  /api/reviews, /api/interviews, /api/discussions  │
+│  GET  /api/workplace-index, /api/offers, /api/tools    │
 ├────────────────────────────────────────────────────────┤
 │             Prisma ORM (Strict Type Safety)            │
 ├────────────────────────────────────────────────────────┤
@@ -170,23 +171,27 @@ Visit `http://localhost:8080` to experience the application.
 
 ## 🗄️ Database Schema
 
-The relational structure prioritizes strict relationships over flat documents:
+The relational structure prioritizes strict relationships over flat documents. It has been recently overhauled from 2 models to 8 advanced models:
 
 - **Company Model**: Stores exact metadata (`slug`, `normalized_name`, `industry`, `headcount_range`). Serves as the single source of truth for canonical company pages.
 - **Salary Model**: Tied to companies via `company_id`. Uses exact native enums (`L3`, `SDE_I`, `PRINCIPAL`) for leveling. `base_salary`, `bonus`, and `stock` are stored as `BigInt` to prevent floating-point precision loss. `total_compensation` is completely managed server-side.
+- **WorkplaceIndex**: Deeply integrated 1:1 with `Company` to provide multi-vector scoring for Culture, WLB, and Compensation.
+- **Review, Interview, Discussion, Offer**: 4 distinct models providing immense data-depth for company profiles, securely linked via foreign keys.
 
 ---
 
 ## 📡 API Reference
 
 - **`POST /api/ingest-salary`**
-  Submits a new salary record. Extremely strict validation. Rejects negative numbers. Recomputes `total_compensation`. Deduplicates requests within 48 hours. Returns `201 Created` or exact `400 Bad Request` schema matches.
-- **`GET /api/salaries`**
-  Fetch salary records with case-insensitive `ILIKE` filters, pagination (`page`, `limit` capped at 100), and custom sorting.
+  Submits a new salary record. Extremely strict validation. Rejects negative numbers. Recomputes `total_compensation`.
+- **`GET /api/salaries` & `GET /api/salaries/heatmap`**
+  Fetch salary records with case-insensitive `ILIKE` filters, pagination (`page`, `limit` capped at 100), and custom sorting. The heatmap endpoint returns geographic data.
 - **`GET /api/companies/[slug]`**
-  Retrieves company metadata, a full salary list, and dynamically computed `median_total_compensation` and `level_distribution` arrays.
-- **`GET /api/compare?s1=UUID&s2=UUID`**
-  Fetches two specific records and computes precise comparative deltas across base, bonus, stock, and total compensation.
+  Retrieves company metadata, a full salary list, and dynamically computed `median_total_compensation`, `level_distribution`, and the `WorkplaceIndex`.
+- **`GET /api/reviews` & `GET /api/interviews` & `GET /api/offers`**
+  Specialized endpoints that query high-depth qualitative data mapped directly to specific companies or roles.
+- **`POST /api/search`**
+  Universal search traversing companies, discussions, and models to instantly route users to matching records.
 
 ---
 
@@ -209,12 +214,12 @@ We deliberately implemented **Page-Based Pagination** (`?page=2`). Salary tables
 
 ## 📊 Seed Data Execution
 
-The repository contains a highly robust `prisma/seed.ts` script. We generated over 60 records testing severe edge cases:
+The repository contains a highly robust `prisma/seed.ts` script. We generated over **160 highly relational records** testing severe edge cases across 8 models:
 - **12 Companies Included**: Google, Amazon, Meta, Microsoft, NVIDIA, Flipkart, Meesho, Razorpay, Zepto, TCS, Infosys, Wipro.
 - **Edge Cases Tested**: 
   - Zero bonuses & Zero stock entries.
   - Rare `PRINCIPAL` levels.
-  - Multi-variant name ingestions (`Google India`, `google`, `GOOGLE` all map correctly to `google`).
+  - Deep generation of Interviews (e.g. System Design questions), Reviews (pros/cons), and Discussions.
 - **Real-World Currency Ranges**: INR values accurately ranging from ₹3,36,000 (WITCH entry-level) to ₹60,00,000 (FAANG senior level).
 
 ---
