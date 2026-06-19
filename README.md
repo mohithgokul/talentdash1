@@ -1,98 +1,224 @@
-# TalentDash — Career Intelligence Platform
+<div align="center">
+  
+# 🚀 TalentDash | Career Intelligence Platform
 
-TalentDash is a career intelligence platform that provides structured, comparable, and decision-ready compensation data. This repository contains the full-stack implementation fulfilling the **3-Day Engineering Trial Task**.
+> **Structured, comparable, and decision-ready compensation data for tech professionals.** ⚡
 
-### 🔗 Live Deployments
-- **Backend API (Render)**: [https://talentdash1.onrender.com](https://talentdash1.onrender.com)
-- **Frontend App (Vercel)**: [https://talentdash1.vercel.app/](https://talentdash1.vercel.app/)
-- **Database**: Neon Serverless PostgreSQL
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+
+[![Stars](https://img.shields.io/github/stars/mohithgokul/talentdash1?style=social)](https://github.com/mohithgokul/talentdash1/stargazers)
+[![Issues](https://img.shields.io/github/issues/mohithgokul/talentdash1)](https://github.com/mohithgokul/talentdash1/issues)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
 
 ---
 
-## 🚀 Quick Start (Under 5 Minutes)
+## 🔗 Quick Links
 
-We have engineered this repository to be up and running locally with live data in under 5 minutes. 
+| Section | Link |
+|---------|------|
+| 📖 **About the Project** | [What is TalentDash?](#-what-is-talentdash) |
+| ✨ **Features** | [Key Features](#-core-features) |
+| 🛠️ **Tech Stack** | [Technologies Used](#%EF%B8%8F-tech-stack) |
+| 🏗️ **Architecture** | [Architecture Overview](#-architecture--data-flow) |
+| 🗄️ **Database Schema** | [Prisma Collections](#%EF%B8%8F-database-schema) |
+| 🚀 **Getting Started** | [Installation Guide](#-getting-started-under-5-minutes) |
+| 📡 **API Reference** | [REST API Docs](#-api-reference) |
+| 🧠 **Engineering Decisions** | [Architecture Decisions](#-architecture-decisions) |
 
-### 1. Prerequisites
+---
+
+## 📖 What is TalentDash?
+
+TalentDash is a comprehensive career intelligence platform that processes and normalizes massive amounts of compensation data to empower candidates. Unlike traditional job boards or basic review sites, TalentDash strictly normalizes company names, job levels, and salary ranges to provide **structured, highly comparable datasets** via a blazing-fast user interface.
+
+### 🔗 Live Deployments
+- **Frontend App (Vercel)**: [https://talentdash1.vercel.app](https://talentdash1.vercel.app/)
+- **Backend API (Render)**: [https://talentdash1.onrender.com](https://talentdash1.onrender.com)
+
+---
+
+## ✨ Core Features
+
+- **Salary Insights**: Browse through 60+ verified records across 12 top tech companies (FAANG, Unicorns, and WITCH).
+- **Company Profiles**: Detailed pages featuring the true statistical Median Total Compensation and exact level distributions.
+- **Side-by-Side Comparison**: Evaluate two specific salary records via URL-shareable routes (`/compare?s1=UUID&s2=UUID`) featuring automated delta calculations.
+- **Strict Ingestion Pipeline**: Secure REST API enforcing normalization (e.g., mapping "Google India" -> `google`) and rigidly computing Total Compensation securely on the server-side.
+- **Intelligent Deduplication**: Auto-rejects duplicate records submitted within 48 hours to preserve database integrity.
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend Layer**
+- **Framework**: React.js with Vite (Lightning-fast SPA)
+- **Routing**: TanStack Router (Type-safe client-side routing)
+- **Styling**: Tailwind CSS v4 (No component libraries; fully bespoke UI)
+- **Deployment**: Vercel
+
+**Backend Layer**
+- **Framework**: Node.js & Express.js
+- **Validation**: Zod (Strict schema boundary enforcement)
+- **Database**: PostgreSQL via Neon Serverless
+- **ORM**: Prisma Client
+- **Deployment**: Render
+
+---
+
+## 🎨 Design System
+
+TalentDash utilizes a highly analytical, data-first visual identity heavily prioritizing trust and clarity:
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| **Primary Accent** | `#FF5A5F` | CTAs, active states, highlights |
+| **Data Blue** | `#0369A1` | Large salary figures and critical comparisons |
+| **Deep Text** | `#222222` | Primary headings, company names |
+| **Body Text** | `#484848` | Standard paragraphs, metadata |
+| **Muted Text** | `#717171` | Secondary labels, table headers |
+| **Success** | `#008A05` | Positive deltas, verified badges |
+| **Error** | `#D93025` | Negative deltas, rejection indicators |
+| **Background** | `#F7F7F7` | Core application backdrop |
+
+**Typography**: Inter (Google Fonts) — H1 (36px, 700w), H2 (28px, 700w), Body (16px, 400w).
+
+---
+
+## 🚀 Getting Started (Under 5 Minutes)
+
+### Prerequisites
 - Node.js (v18+)
 - npm
-- PostgreSQL database (Local or Neon)
+- A PostgreSQL Database URL (Local or Neon Serverless)
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/mohithgokul/talentdash1.git
+cd talentdash
+```
 
 ### 2. Environment Variables
 Create a `.env` file in the **`backend`** directory:
 ```env
-# backend/.env
 PORT=4000
-DATABASE_URL="postgresql://<user>:<password>@<host>/<db>?sslmode=require"
+DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 FRONTEND_URL="http://localhost:8080"
 ```
 
 Create a `.env` file in the **`frontend`** directory:
 ```env
-# frontend/.env
 VITE_API_URL="http://localhost:4000"
 ```
 
-### 3. Database Setup & Seeding
-Navigate to the backend and initialize the database:
+### 3. Database Setup & Seeding (Run from `/backend`)
 ```bash
 cd backend
 npm install
 npx prisma db push
 npx prisma db seed
 ```
-> *The seed script generates 60+ realistic salary records across 12 tech companies, perfectly mapping FAANG, Unicorns, and WITCH companies to simulate production.*
+> *The seed script will populate your database with exactly 60 realistic records testing edge cases (e.g., zero bonus, PRINCIPAL levels, and duplicate name normalization).*
 
-### 4. Start the Application
-Start the **Backend API** (Runs on port 4000):
+### 4. Run Locally
+**Terminal 1 (Backend)**:
 ```bash
 cd backend
 npm run dev
 ```
 
-Start the **Frontend App** (Runs on port 8080):
+**Terminal 2 (Frontend)**:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Navigate to `http://localhost:8080` to experience the application.
+Visit `http://localhost:8080` to experience the application.
 
 ---
 
-## 🏗️ Architecture Decisions
+## 🏗 Architecture & Data Flow
 
-### 1. Rendering Strategy (Static vs. ISR vs. Dynamic)
-Because the business model relies heavily on Cloudflare caching and SEO (generating millions of zero-cost pages), the architecture must strictly align with caching heuristics:
-- **/salaries (Static + Client Hydration)**: The global salaries table is an SPA/static shell that hydrates via the API. This gives sub-second interactivity when users apply dozens of overlapping filter combinations.
-- **/companies/[slug] (Static/ISR Target)**: Company pages are rarely updated. In a Next.js environment, these would be built at deploy time (`generateStaticParams`) and updated via ISR. In this Vite SPA implementation, the shell is static and hydrates instantly, supported by our heavy caching on the API layer (`s-maxage=3600`).
-- **/compare (Dynamic/Client)**: Comparison relies heavily on user-specific parameters (`s1` and `s2`). This cannot be prebuilt and is evaluated dynamically on the client.
-
-### 2. Pagination (Page-Based vs Cursor-Based)
-I chose **Page-Based Pagination** over Cursor-Based Pagination for the following reasons:
-- **SEO & Sharability**: Users need to share links like `?page=4`. Cursor-based URLs contain opaque hashes which are terrible for sharing and SEO.
-- **Table Navigation**: Users expect to jump directly to specific pages or accurately gauge the depth of the data ("Page 2 of 14"). Cursor pagination only supports "Next" and "Previous" efficiently.
-- **Offset Penalty Mitigation**: While `OFFSET` degrades at millions of rows, the strict cap of 100 rows per query combined with targeted composite indexes (`company_id`, `level`, `location`) ensures `<200ms` performance even at scale.
-
-### 3. API Cache TTL Choices
-- `GET /api/salaries`: `Cache-Control: s-maxage=300, stale-while-revalidate=3600`
-  *Why?* Salary searches are highly dynamic and frequently updated. A 5-minute CDN cache prevents database hugging during traffic spikes while ensuring users see relatively fresh ingested data.
-- `GET /api/companies/:slug`: `Cache-Control: s-maxage=3600, stale-while-revalidate=86400`
-  *Why?* Company metadata and level distributions change very slowly. A 1-hour hard cache with a 24-hour stale window provides maximum CDN offloading and instant response times.
-
-### 4. What I Would Build Differently With Another Day
-- **Next.js App Router Integration**: I would port the frontend from a pure Vite SPA to Next.js 15 App Router to explicitly leverage `generateStaticParams` for hard static HTML generation, improving the raw initial TTFB for SEO crawlers.
-- **Background Job Queue**: I would implement `BullMQ` + `Redis` for the ingestion pipeline to asynchronously batch calculate Medians and process scraping pipelines without blocking the primary Node thread.
-
-### 5. What I Did NOT Build and Why
-- **Typesense Search Phase 2**: I implemented robust `ILIKE` case-insensitive PostgreSQL searching. Typesense (typo-tolerance) was excluded due to the time pressure and because Postgres handles MVP scale perfectly well.
-- **Authentication**: Authentication via Clerk was excluded as the trial focuses primarily on the core rendering, validation, and data pipeline contracts rather than administrative portals.
+```text
+┌────────────────────────────────────────────────────────┐
+│                   Vite + React SPA                     │
+│  (Hydrates static UI rapidly, executing client-side)   │
+├──────────┬──────────┬──────────┬───────────────────────┤
+│  Home    │ /salaries│/companies│   /compare            │
+│  (SPA)   │ (Filters)│  [slug]  │ (URL-based Delta)     │
+├──────────┴──────────┴──────────┴───────────────────────┤
+│               HTTP Boundary (CORS Allowed)             │
+├────────────────────────────────────────────────────────┤
+│                 Express.js Backend API                 │
+│  POST /api/ingest-salary (Validation & BigInt Parsing) │
+│  GET  /api/salaries (Pagination & ILIKE search)        │
+│  GET  /api/companies/[slug] (Median & Aggregations)    │
+│  GET  /api/compare (Server-side lookups)               │
+├────────────────────────────────────────────────────────┤
+│             Prisma ORM (Strict Type Safety)            │
+├────────────────────────────────────────────────────────┤
+│             Neon Serverless PostgreSQL DB              │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 🛡️ Strict Validation & Data Integrity
-Data integrity is treated as the primary product:
-- **Computed TC**: `total_compensation` is never trusted from the frontend. It is rigidly recomputed server-side on ingest.
-- **Zod Boundaries**: Negative experience years or salaries are instantly met with a `400 Bad Request`.
-- **Enum Normalization**: Exact validation errors mapped to the integration contract (`"Level must be one of: L3, L4..."`). 
-- **Deduplication**: Deep verification prevents identical record spamming within a 48-hour window.
+## 🗄️ Database Schema
+
+The relational structure prioritizes strict relationships over flat documents:
+
+- **Company Model**: Stores exact metadata (`slug`, `normalized_name`, `industry`, `headcount_range`). Serves as the single source of truth for canonical company pages.
+- **Salary Model**: Tied to companies via `company_id`. Uses exact native enums (`L3`, `SDE_I`, `PRINCIPAL`) for leveling. `base_salary`, `bonus`, and `stock` are stored as `BigInt` to prevent floating-point precision loss. `total_compensation` is completely managed server-side.
+
+---
+
+## 📡 API Reference
+
+- **`POST /api/ingest-salary`**
+  Submits a new salary record. Extremely strict validation. Rejects negative numbers. Recomputes `total_compensation`. Deduplicates requests within 48 hours. Returns `201 Created` or exact `400 Bad Request` schema matches.
+- **`GET /api/salaries`**
+  Fetch salary records with case-insensitive `ILIKE` filters, pagination (`page`, `limit` capped at 100), and custom sorting.
+- **`GET /api/companies/[slug]`**
+  Retrieves company metadata, a full salary list, and dynamically computed `median_total_compensation` and `level_distribution` arrays.
+- **`GET /api/compare?s1=UUID&s2=UUID`**
+  Fetches two specific records and computes precise comparative deltas across base, bonus, stock, and total compensation.
+
+---
+
+## 🧠 Architecture Decisions
+
+### 1. Decoupled Pure Vite SPA vs SSR Monolith
+Because the core product demands extremely complex data filtering (combining dozens of locations, roles, and levels simultaneously), moving away from heavy Server-Side Rendering (SSR) to a **Pure Vite SPA** ensures that UI state hydrates instantly. The backend handles the heavy aggregation while the client-side router (TanStack) ensures snappy, localized DOM updates.
+
+### 2. Prisma BigInt Serialization Over API Boundaries
+A major technical challenge encountered was moving financial data (`base_salary`) over HTTP. Prisma enforces `BigInt` for large precision numbers, but standard Express `res.json()` fails to stringify it. We explicitly bypassed this by building a custom recursive serialization middleware `serializeBigInt` to format these large integers safely before they hit the frontend.
+
+### 3. Page-Based Pagination over Cursor-Based
+We deliberately implemented **Page-Based Pagination** (`?page=2`). Salary tables are sorted by `total_compensation` (which changes dynamically and frequently) rather than stable chronological dates. Cursor pagination breaks easily when sorting on mutable numeric values, and page-based URLs are significantly better for users to share and bookmark.
+
+### 4. What Was Scoped Out
+- **Authentication**: Implementing Clerk or Auth.js was excluded because the primary evaluation focus was strictly set on schema integrity, data pipelines, and UI normalization rather than administrative user portals.
+- **Typesense Search**: We relied on native PostgreSQL `ILIKE` for partial text searching. While Typesense handles typo-tolerance better at an enterprise scale, Postgres is more than sufficient for an MVP and eliminates the need for maintaining a separate synchronized data store.
+
+---
+
+## 📊 Seed Data Execution
+
+The repository contains a highly robust `prisma/seed.ts` script. We generated over 60 records testing severe edge cases:
+- **12 Companies Included**: Google, Amazon, Meta, Microsoft, NVIDIA, Flipkart, Meesho, Razorpay, Zepto, TCS, Infosys, Wipro.
+- **Edge Cases Tested**: 
+  - Zero bonuses & Zero stock entries.
+  - Rare `PRINCIPAL` levels.
+  - Multi-variant name ingestions (`Google India`, `google`, `GOOGLE` all map correctly to `google`).
+- **Real-World Currency Ranges**: INR values accurately ranging from ₹3,36,000 (WITCH entry-level) to ₹60,00,000 (FAANG senior level).
+
+---
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
