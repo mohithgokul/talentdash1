@@ -17,14 +17,32 @@ const searchSchema = z.object({
   location: fallback(z.string(), "").default(""),
   currency: fallback(z.enum(["INR", "USD"]), "INR").default("INR"),
   sort: fallback(
-    z.enum(["tc_desc", "tc_asc", "base_desc", "base_asc", "exp_desc", "exp_asc"]),
+    z.enum(["tc_desc", "tc_asc", "base_desc", "base_asc", "exp_desc", "exp_asc", "recent", "verified"]),
     "tc_desc",
   ).default("tc_desc"),
   page: fallback(z.number().int().min(1), 1).default(1),
 });
 
+import { fetchSalaries } from "../lib/api";
+
 export const Route = createFileRoute("/salaries/")({
   validateSearch: zodValidator(searchSchema),
+  loaderDeps: ({ search: { q, role, levels, location, currency, sort, page } }) => ({
+    company: q, role, level: levels[0], location, currency, sort, page, limit: PAGE_SIZE
+  }),
+  loader: async ({ deps }) => {
+    const params: Record<string, string> = {};
+    if (deps.company) params.company = deps.company;
+    if (deps.role) params.role = deps.role;
+    if (deps.level) params.level = deps.level;
+    if (deps.location) params.location = deps.location;
+    if (deps.currency) params.currency = deps.currency;
+    if (deps.sort) params.sort = deps.sort;
+    params.page = String(deps.page);
+    params.limit = String(deps.limit);
+    
+    return fetchSalaries(params);
+  },
   head: () => ({
     meta: [
       { title: "Tech Salaries — TalentDash" },
@@ -53,32 +71,12 @@ export const Route = createFileRoute("/salaries/")({
 
 function SalariesPage() {
   const { q, role, levels, location, currency, sort, page } = Route.useSearch();
+  const { data: pageRows, meta } = Route.useLoaderData();
 
-  let rows = SALARIES.slice();
-  if (q) rows = rows.filter((r) => r.company.toLowerCase().includes(q.toLowerCase()));
-  if (role) rows = rows.filter((r) => r.role === role);
-  if (levels.length) rows = rows.filter((r) => levels.includes(r.level_standardized));
-  if (location) rows = rows.filter((r) => r.location === location);
-
-  const tcOf = (r: typeof rows[number]) => convert(r.total_compensation, r.currency, currency);
-  const baseOf = (r: typeof rows[number]) => convert(r.base_salary, r.currency, currency);
-
-  rows.sort((a, b) => {
-    switch (sort) {
-      case "tc_asc":   return tcOf(a) - tcOf(b);
-      case "base_desc":return baseOf(b) - baseOf(a);
-      case "base_asc": return baseOf(a) - baseOf(b);
-      case "exp_desc": return b.experience_years - a.experience_years;
-      case "exp_asc":  return a.experience_years - b.experience_years;
-      default:         return tcOf(b) - tcOf(a);
-    }
-  });
-
-  const total = rows.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const current = Math.min(page, totalPages);
+  const total = meta.total;
+  const totalPages = meta.totalPages;
+  const current = meta.page;
   const start = (current - 1) * PAGE_SIZE;
-  const pageRows = rows.slice(start, start + PAGE_SIZE);
   const showingFrom = total === 0 ? 0 : start + 1;
   const showingTo = Math.min(start + PAGE_SIZE, total);
 

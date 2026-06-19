@@ -39,7 +39,7 @@ function CompanyPage() {
   
   const records = salaries || [];
   const displayCurrency = "USD";
-  const tcs = records.map((r: any) => convert(r.total_compensation, r.currency, displayCurrency)).sort((a: number, b: number) => a - b);
+  const tcs = records.map((r: any) => convert(Number(r.total_compensation), r.currency, displayCurrency)).sort((a: number, b: number) => a - b);
   
   const min = tcs[0] ?? 0;
   const max = tcs[tcs.length - 1] ?? 0;
@@ -87,7 +87,7 @@ function CompanyPage() {
         <Reveal delay={120}>
           <Stat 
             label="Median Total Comp" 
-            value={median_total_compensation ? formatMoney(convert(median_total_compensation, "INR", displayCurrency), displayCurrency) : "—"} 
+            value={median_total_compensation ? formatMoney(convert(Number(median_total_compensation), "INR", displayCurrency), displayCurrency) : "—"} 
             highlight 
           />
         </Reveal>
@@ -179,7 +179,7 @@ function CompanyPage() {
                     <td className="px-4 py-3 text-[#484848]">{r.location}</td>
                     <td className="px-4 py-3 text-[#484848]">{r.experience_years}y</td>
                     <td className="px-4 py-3 text-right font-medium text-[#0369A1]">
-                      {formatMoney(r.total_compensation, r.currency)}
+                      {formatMoney(Number(r.total_compensation), r.currency)}
                     </td>
                   </tr>
                 ))}
