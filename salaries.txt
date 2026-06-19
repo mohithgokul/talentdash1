@@ -1,0 +1,129 @@
+tually   wrong.     TalentDash   is   a   career   intelligence   platform.   Not   a   job   board.   Not   a   company   review   site.   Not   a   salary   listing.   The   product   is   structured,   comparable,   decision-ready   career   data   served   at   internet   scale   with   near-zero   in
+
+nical   preference   —   it   is   the   business   model.     The   flywheel:   more   pages   indexed   by   Google   →   more   users   →   more   salary   submissions   →   better   data   →   better   pages   →   more   pages.   Every   engineer's   job   is   to   make   this   flywheel   spin   fas
+
+ot   their   colors.   Color   System   Element   Value   Usage   Primary   Accent   #FF5A5F   —   Coral   Red   Primary   CTAs,   active   states,   salary   highlights   Deep   Text   #222222   —   Airbnb   Black   Main   headings,   company   names,   primary   content  Body   Text   #484848   —   Soft
+
+rder   Color   #EBEBEB   —   Light   Border   Dividers,   table   borders,   card   outlines   Success   Green   #008A05   —   Positive   Indicator   Salary   increases,   positive   trends   Warning   Orange   #FFB400   —   Alert   Indicator   Market   caution   indicators   Error   Red   #D93025   —   R
+
+ Inter   (Primary),   system-ui   fallback   H1   36px,   weight   700,   line-height   1.1   H2   28px,   weight   700   H3   22px,   weight   600   Salary   Figures   32–40px,   weight   700   Body   Text   16px,   weight   400,   line-height   1.6   Small   Labels   13px,   weight   500   Metadata   12
+
+efore   starting   the   trial.     Product   Their   Strength   Where   TalentDash   Beats   Them   levels.fyi   Gold   standard   for   US   tech   salary   data.   Level-based,   structured,   trusted.   The   product   we   most   closely   reference.   Virtually   no   India   data.   No   reviews,  
+
+d   to   tech.   We   cover   India   deeply   +   multiple   industries.   ambitionbox.com   Dominant   in   India   for   company   reviews   and   salary   data.   High   user   trust   among   Indian   professionals.   Data   is   unstructured   and   un-normalised.   Salary   ranges   are   too   bro
+
+   +   salaries   in   one   place.   Trusted   by   recruiters   worldwide.   Paywalled.   Increasingly   ad-driven.   Reviews   are   unverified.   Salary   data   is   noisy.   Algorithm   hides   negative   reviews.   teamblind.com   Best   anonymous   professional   community.   Real   talk   about  
+
+ companies,   comp,   and   layoffs.   Forum-only.   No   structured   salary   data.   No   company   pages.   No   SEO   value.   Entirely   US-focused.   comparably.com   Strong   culture   and   compensation   analytics.   
+
+adoption   in   India.   Limited   data   depth.   Comparisons   are   surface-level.   LinkedIn   Salarieslinkedin.  com   Enormous   user   base.   Salary   insights   built   into   job   listings.   Paywalled.   Vague   salary   bands   with   no   level   granularity.   Not   structured   for   compa
+
+  them.     Area   What   Users   Do   Here   Core   SEO   Pages   Generated   Companies   Discover   and   research   employers.   View   ratings,   salary   ranges,   headcount,   benefits,   talentdash.com/companies/{slug}talentdash.com/com  panies/{slug}/reviewstalentdash.com/companies/{slufunding   s
+
+ash.com/interviews/{company}/{role}  talentdash.com/profiles/{role}/interview-questions   Compare   Side-by-side   comparison   of   companies   or   salary   records.   The   "Dmart   vs   Amazon"   or   "offer   letter   A   vs   B"   experience.   talentdash.com/compare/{company1}-vs-{company2}  talent
+
+dash.com/compare   (tool   page)   Tools   Salary   calculator,   hike   calculator,   equity/ESOP   calculator,   offer   comparison   tool.   High   intent   pages   that   attract   decision-makin
+
+g   traffic.   talentdash.com/tools/salary-calculatortalentdash.com  /tools/hike-calculatortalentdash.com/tools/equity-calc  ulatortalentdash.com/tools/offer-comparison   Community   /   Forum
+
+  Page   /companies/{slug}   Static   (generateStaticPara  ms)   Changes   rarely.   Pre-built   for   every   known   company   at   build   time.   Salary   Pages   /salaries/{role}   Static   Core   SEO   asset.   Must   be   fastest   possible.   Rebuilt   when   new   data   added   via   ISR   trigg
+
+er.  Location   Salary   Pages   Static   Millions   of   combinations   —   prebuilt   for   top   50   cities,   ISR   for   the   rest.   Comparison   Pages   ISR   (rev
+
+  years   of   experience.   Reject   if   negative   or   >   50.   If   a   range   is   given   ("5–8   yrs")   use   the   midpoint   (6).   base_salary   number,   required   Annual   gross,   in   smallest   currency   unit   (paise   for   INR,   cents   for   USD).   Reject   if   ≤   0.   bonus  
+
+at   Actually   Happens   1   —   Discover   The   scraper   (Python   +   Playwright)   navigates   to   AmbitionBox,   Glassdoor,   or   LinkedIn   salary   pages.   It   finds   salary   listings   for   a   target   role   and   company.   Playwright   handles   JavaScript-rendered   pages.   Scrapy  
+
+r   more   than   1   request   per   2   seconds   per   domain.  2   —   Extract   Raw   The   scraper   pulls   the   raw   text   around   each   salary   record:   company   name   as   shown,   role   title   as   shown,   salary   text   ("₹18–22   LPA"),   location,   experience   description.   T
+
+duplication   Check   Before   storing,   check:   does   a   record   with   the   same   company   +   role   +   level   +   location   +   base   salary   (within   10%)   already   exist   and   was   submitted   in   the   last   48   hours?   If   yes,   skip   it.   This   prevents   the   same   
+
+oor   page   being   scraped   twice   and   polluting   the   data.   6   —   Ingest   via   API   Valid   records   are   POSTed   to   /api/ingest-salary.   The   backend   recomputes   total_compensation,   sets   source   =   'SCRAPED',   assigns   a   confidence_score   floor   of   0.5   for   scra
+
+   0.4   are   flagged   for   human   review   instead   of   auto-inserted.   7   —   Static   Page   Regeneration   After   a   batch   of   new   salary   records   is   ingested,   a   background   job   triggers   ISR   revalidation   on   the   affected   company   and   role   pages   via   Cloudf
+
+—   3-Day   Trial   Task     Frontend   —   What   You   Are   Building   and   Why   The   most   visited   page   on   TalentDash   will   be   a   salary   table.   Not   a   homepage.   Not   a   blog   post.   A   dense,   filterable,   level-aware   compensation   table   that   answers:   "What   d
+
+in   this   city?"     Your   job   is   to   build   that   experience   so   well   that   a   first-time   user   can   find   and   compare   a   salary   in   under   10   seconds   without   any   onboarding.   The   page   must   be   fast   enough   to   rank   on   Google   (LCP   <  2   seconds)
+
+ses:   @/components,   @/lib,   @/types   —   configured   in   tsconfig.json   ▸   A   mock   JSON   seed   file   at   lib/mock-data.ts   —   50+   salary   records   matching   the   integration   contract   shape   exactly   ▸   ESLint   +   Prettier   configured.   Code   that   does   not   lint   d
+
+oes   not   commit.     F2   —   Salary   Table   Page    /salaries   What   to   deliver   ▸   Static   page   using   React   Server   Components.   Reads   from   the   mock   data   fil
+
+e   at   build   time.   ▸   Table   columns   (in   order):   Company   ·   Role   ·   Level   ·   Location   ·   Experience   ·   Base   Salary   ·   Stock   ·   Total   Comp   ▸   Level   column   renders   as   a   badge   —   different   background   color   per   tier:   L3/SDE-I   =   sl
+
+t   every   combination.   Filter   +   sort   +   pagination   must   work   together   correctly.   ▸   Currency   toggle   must   reformat   all   salary   figures.   ₹42,00,000   →   $50,400   using   a   consistent   conversion   rate   stored   in   a   config   file.    F3   —   Company   Page    /
+
+on   bar:   horizontal   stacked   bar   showing   what   percentage   of   records   are   L3,   L4,   L5,   L6,   etc.   for   this   company   ▸   Salary   list:   a   filtered   version   of   the   salary   table   showing   only   this   company's   records.   Same   columns,   same   badge   system
+
+   is   one   of   the   few   justified   uses   of   'use   client'   in   the   codebase)   ▸   Two   dropdown   selectors:   select   any   two   salary   records   from   the   seed   data   ▸   Side-by-side   breakdown:   Company,   Role,   Level,   Location,   Experience,   Base,   Bonus,   Stock, 
+
+nical   URL:   prevents   duplicate   content   penalties   ▸   JSON-LD   structured   data:   schema.org/JobPosting   or   schema.org/Dataset   on   salary   pages.   Google   uses   this   to   show   rich   results.   ▸   Open   Graph   tags:   og:title,   og:description,   og:url   for   social   shar
+
+   on   every   page   —   matches   the   primary   search   intent     SEO   is   not   a   bonus   task.   It   is   a   core   deliverable.   A   salary   table   page   with   no   JSON-LD   structured   data   is   a   salary   table   page   that   will   never   rank   on   Google.   TalentDash's 
+
+   loaders   or   reserved   space   for   all   async   UI.   CLS   <   0.1.   ▸   JS   bundle:   keep   client-side   JavaScript   minimal.   The   salary   table   is   a   server   component   —   it   must   ship   zero   client   JS   by   default.   ▸   Images:   company   logos   use   next/image 
+
+istribution   bar   with   100%   of   one   level)   ▸   Record   with   no   bonus   and   no   stock   (shows   "—"   in   both,   TC   =   base   salary   exactly)   ▸   Very   long   company   name   (40+   characters)   —   must   not   break   table   layout   ▸   Very   large   salary   number   (
+
+   page   views.   Take   the   design   seriously.    B1   —   PostgreSQL   Schema   via   Prisma   What   to   deliver   ▸   schema.prisma   with   Salary   model,   Company   model,   and   all   fields   from   the   integration   contract   ▸   Company   is   a   separate   model   with   a   one-to-
+
+many   relationship   to   Salary   —   not   just   a   string   field   on   Salary   ▸   Level   is   a   Prisma   enum   —   not   a   String.   Invalid   levels   are   rejected   at   the   database   constraint   level,   not   
+
+try   (string),   headquarters   (string),   founded_year   (int,   nullable),   headcount_range   (string,   nullable),   created_at,   updated_at   Salary   model   id   (UUID),   company_id   (FK   →   Company),   role   (string),   level   (enum:   L3|L4|L5|L6|SDE_I|SDE_II|SDE_III|STAFF|PRINCIPAL|IC4|
+
+IC5),   location   (string),   currency   (enum:   INR|USD|GBP|EUR),   experience_years   (int),   base_salary   (bigint),   bonus   (bigint,   default   0),   stock   (bigint,   default   0),   total_compensation   (bigint,   COMPUTED),   source   (enum:   CO
+
+  from   input.   confidence_score   CHECK   constraint   0.0–1.0.   experience_years   CHECK   >   0   AND   <   51.     B2   —   POST   /api/ingest-salary   What   to   deliver   ▸   Accepts   the   integration   contract   JSON   body   ▸   Validation   pipeline   (in   order):   check   required   fie
+
+ →   check   types   correct   →   check   level   is   valid   enum   value   →   check   experience_years   >   0   and   <   51   →   check   base_salary   >   0   →   check   confidence_score   between   0.0   and   1.0   ▸   Normalisation   pipeline:   company   name   →   lowercase   +   trim   +   
+
+strip   punctuation.   Find   or   create   Company   record   by   normalized_name.  ▸   Recompute   total_compensation   =   base_salary   +   (bonus   ??   0)   +   (stock   ??   0).   Strip   any   client-submitted   total_compensation.   ▸   Duplicate   check:   if   a   record   wi
+
+th   same   company_id   +   role   +   level   +   location   has   been   submitted   in   the   last   48   hours   with   base_salary   within   10%   of   this   record,   return   409   Conflict   with   a   clear   message.   ▸   Return   400   for   validation   failures   with 
+
+the   query   is   slow,   add   indexes.     B4   —   GET   /api/companies/:slug   What   to   deliver   ▸   Returns:   company   metadata,   full   salary   list   for   this   company,   median_total_compensation   (computed   server-side),   level_distribution   object   ▸   median_total_compensation:
+
+  level   for   this   company   ▸   Returns   404   with   {   error:   true,   message:   'Company   not   found'   }   for   unknown   slugs   ▸   Salary   list   in   the   response   must   be   sorted   by   total_compensation   descending     B5   —   GET   /api/compare   What   to   deliver   ▸   
+
+Query   parameters:   s1   (salary   record   UUID),   s2   (salary   record   UUID)   ▸   Returns   both   full   records   plus   a   delta   object:   {   base_delta:   number,   bonus_delta:   number,   stock_delt
+
+"   —   all   must   resolve   to   the   same   Company   slug   "google"     B7   —   Edge   Cases   That   Will   Be   Tested   ▸   POST   /ingest-salary   with   negative   base_salary   →   must   return   400,   not   store   the   record   ▸   POST   /ingest-salary   with   level   =   "Senior   So
+
+ftware   Engineer"   (not   in   enum)   →   must   return   400   ▸   POST   /ingest-salary   with   total_compensation   pre-filled   incorrectly   →   must   recompute   and   store   the   correct   value   ▸   GET   /salaries   with   al
+
+l   backend   requirements   apply   in   full.     FS2   —   Everything   from   Frontend   F1   through   F7   Build   the   complete   frontend:   salary   table,   company   page,   compare   page,   SEO   markup,   performance   requirements,   all   edge   cases.   All   frontend   requirements   ap
+
+   visit   /companies/amazon,   and   expect   to   see   real   data   from   the   database   ▸   The   reviewer   will   call   POST   /api/ingest-salary   with   a   new   record,   then   visit   /salaries,   and   expect   to   see   the   new   record   after   an   ISR   revalidation   cycle   ▸  
+
+ job   is   to   build   the   pipeline   that   creates   that   moat.   You   are   building   the   system   that   continuously   ingests   raw   salary   data   from   the   public   web,   sends   it   through   an   LLM   to   normalise   it,   validates   every   field   strictly,   deduplicates  
+
+  records,   and   stores   clean   data   that   the   backend   team   can   serve.     Nobody   on   this   team   wants   to   manually   clean   salary   data.   That   is   your   pipeline's   job.     A1   —   Web   Scraper   (Python   +   Playwright)   What   to   deliver   ▸   Python   script   u
+
+sing   Playwright   (headless   Chromium)   targeting   AmbitionBox   salary   listings   ▸   Target   pages:   ambitionbox.com/salaries   for   Software   Engineer   and   Data   Analyst   roles   ▸   The   scraper   must   h
+
+h   the   entire   run   on   one   bad   record.   ▸   Output:   list   of   raw   extracted   dicts   with   keys:   raw_company,   raw_role,   raw_salary_text,   raw_location,   raw_experience   The   bar   ▸   The   scraper   must   produce   at   least   60   raw   records   across   at   least   6  
+
+  array   where   each   element   matches   the   integration   contract   exactly   ▸   The   prompt   must   explicitly   handle   edge   cases:   salary   ranges   (return   the   midpoint),   ambiguous   levels   (return   most   likely   enum   value   with   lower   confidence_score),   missing   f
+
+ple   —   we   need   to   see   your   prompt   design     A3   —   Pydantic   Validation   Layer   What   to   deliver   ▸   A   Pydantic   model   SalaryRecord   that   enforces   the   integration   contract   ▸   Field   validators:   company   must   be   at   least   2   chars   after   normalisati
+
+on,   experience_years   must   be   positive   and   <   51,   base_salary   must   be   >   0,   confidence_score   must   be   0.0–1.0,   level   must   be   in   the   allowed   enum   ▸   A   validate_record(raw_dict)   
+
+function:   returns   (SalaryRecord,   None)   on   success   or   (None,   ValidationError)   on   failure   ▸   Rejection   log:   every   rejected   record   is   written   to 
+
+for   review.     A6   —   Storage   &   Quality   Report   What   to   deliver   ▸   Store   validated   records:   either   POST   to   /api/ingest-salary   if   the   backend   is   running,   or   directly   write   to   Neon   PostgreSQL   using   psycopg2   or   asyncpg   ▸   A   quality   report   
+
+:   query   existing   records   for   the   same   company_id   +   role   +   level   +   location   ▸   If   a   similar   record   exists   (base_salary   within   10%)   and   was   submitted   within   48   hours,   skip   and   log   as   duplicate   ▸   A   deduplicate_existing_records()   functio
+
+   of   Weight     #   Criterion   What   We   Actually   Check   1   It   works   and   is   deployed   We   open   the   live   URL.   Does   the   salary   table   load?   Do   filters   work?   Is   real   data   showing?   Does   the   API   return   correct   shapes?   If   the   core   path   fails
+
+   on   first   attempt,   review   stops.   2   Data   integrity   (Backend   &   FS)   We   POST   a   salary   with   negative   base_salary,   an   invalid   level,   a   duplicate   record.   Does   the   API   reject   correctly?   Is   total_compensation   always   computed,   never   
+
+trusted?   3   Static   architecture   We   run   Lighthouse   on   the   salary   table   page.   Is   LCP   <   2s?   Does   the   page   use   RSC   correctly?   Are   generateStaticParams   used?   Is   there   unnecessary   S
+
+ Prisma   queries   in   the   right   layer?   6   Edge   case   handling   We   test   every   edge   case   listed   in   each   role   section.   Salary   table   with   0   results.   Company   page   with   1   record.   API   with   all   filters   combined.   7   Communication   Did   you   send  
+
+?   Were   blockers   flagged   early?   Did   your   README   explain   the   decisions   you   made?     What   will   not   pass   ▸   Frontend:   salary   table   with   no   working   filter   functionality   —   just   a   static   list   ▸   Frontend:   using   ShadCN   or   MUI   when   the   task
+
+  deviate,   message   us   first.   Scope   cuts   72   hours   is   not   enough   to   build   everything   perfectly.   Cut   deliberately.   A   salary   table   with   solid   filters   and   correct   SEO   beats   a   half-finished   compare   page   and   a   broken   company   page.   Document  

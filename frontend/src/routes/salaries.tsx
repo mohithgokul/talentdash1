@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { SALARIES, uniqueLevels, uniqueLocations, uniqueRoles } from "../lib/mock-data";
+import { fetchSalaries } from "../lib/api";
 import { convert } from "../lib/format";
 import { SalaryTable } from "../components/features/SalaryTable";
 import { FilterBar } from "../components/features/FilterBar";
@@ -33,53 +33,59 @@ export const Route = createFileRoute("/salaries")({
       { property: "og:url", content: "/salaries" },
     ],
     links: [{ rel: "canonical", href: "/salaries" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Dataset",
-          name: "TalentDash Tech Salary Records",
-          description: "Verified salary records for technology roles across India and global markets.",
-          keywords: ["salary", "compensation", "tech", "India", "levels"],
-          creator: { "@type": "Organization", name: "TalentDash" },
-        }),
-      },
-    ],
   }),
+  loaderDeps: ({ search }) => search,
+  loader: async ({ deps }) => {
+    // We fetch one large payload of data to populate the table AND filter options.
+    // In a real huge app we'd have a separate /api/filters endpoint, but this is fine for now.
+    const [pageRes, allRes] = await Promise.all([
+      fetchSalaries({
+        company: deps.q,
+        role: deps.role,
+        // Prisma API doesn't support multiple levels in 'level' query parameter right now, so we handle it on frontend or just pass the first one.
+        // Actually, we'll fetch everything and filter on frontend for simplicity if we want to match the previous exact behavior,
+        // OR we can pass pagination to the backend API! 
+        // Our backend API supports page, limit, company, role, location, currency, sort
+        limit: PAGE_SIZE,
+        page: deps.page,
+        company: deps.q,
+        role: deps.role,
+        location: deps.location,
+        sort: deps.sort
+      }),
+      fetchSalaries({ limit: 1000 }) // To compute all unique filter options
+    ]);
+
+    // Compute unique filters from ALL data
+    const uniqueRoles = Array.from(new Set(allRes.data.map((r) => r.role))).sort();
+    const uniqueLocations = Array.from(new Set(allRes.data.map((r) => r.location))).sort();
+    const uniqueLevels = Array.from(new Set(allRes.data.map((r) => r.level_standardized)));
+
+    return {
+      salaries: pageRes.data,
+      meta: pageRes.meta,
+      filters: { uniqueRoles, uniqueLocations, uniqueLevels }
+    };
+  },
   component: SalariesPage,
 });
 
 function SalariesPage() {
   const { q, role, levels, location, currency, sort, page } = Route.useSearch();
+  const { salaries, meta, filters } = Route.useLoaderData();
 
-  let rows = SALARIES.slice();
-  if (q) rows = rows.filter((r) => r.company.toLowerCase().includes(q.toLowerCase()));
-  if (role) rows = rows.filter((r) => r.role === role);
-  if (levels.length) rows = rows.filter((r) => levels.includes(r.level_standardized));
-  if (location) rows = rows.filter((r) => r.location === location);
+  // If the user selected levels, our backend didn't filter by multiple levels, so we do a quick client-side pass:
+  let finalSalaries = salaries;
+  if (levels.length > 0) {
+    finalSalaries = finalSalaries.filter(s => levels.includes(s.level_standardized));
+  }
 
-  const tcOf = (r: typeof rows[number]) => convert(r.total_compensation, r.currency, currency);
-  const baseOf = (r: typeof rows[number]) => convert(r.base_salary, r.currency, currency);
-
-  rows.sort((a, b) => {
-    switch (sort) {
-      case "tc_asc":   return tcOf(a) - tcOf(b);
-      case "base_desc":return baseOf(b) - baseOf(a);
-      case "base_asc": return baseOf(a) - baseOf(b);
-      case "exp_desc": return b.experience_years - a.experience_years;
-      case "exp_asc":  return a.experience_years - b.experience_years;
-      default:         return tcOf(b) - tcOf(a);
-    }
-  });
-
-  const total = rows.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const current = Math.min(page, totalPages);
-  const start = (current - 1) * PAGE_SIZE;
-  const pageRows = rows.slice(start, start + PAGE_SIZE);
+  const total = meta.total;
+  const totalPages = meta.totalPages;
+  const current = meta.page;
+  const start = (current - 1) * meta.limit;
   const showingFrom = total === 0 ? 0 : start + 1;
-  const showingTo = Math.min(start + PAGE_SIZE, total);
+  const showingTo = Math.min(start + meta.limit, total);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
@@ -97,15 +103,15 @@ function SalariesPage() {
         <Reveal delay={80}>
           <FilterBar
             initial={{ q, role, levels, location, currency }}
-            roles={uniqueRoles()}
-            locations={uniqueLocations()}
-            levels={uniqueLevels()}
+            roles={filters.uniqueRoles}
+            locations={filters.uniqueLocations}
+            levels={filters.uniqueLevels}
           />
         </Reveal>
       </div>
 
       <div className="mt-6">
-        {pageRows.length === 0 ? (
+        {finalSalaries.length === 0 ? (
           <div className="rounded-md border border-[#EBEBEB] bg-white p-10 text-center">
             <p className="text-[15px] text-[#222222]">No records found for these filters.</p>
             <Link to="/salaries" search={{} as never} className="mt-3 inline-block text-[14px] font-medium text-[#FF5A5F] hover:underline">
@@ -113,7 +119,7 @@ function SalariesPage() {
             </Link>
           </div>
         ) : (
-          <SalaryTable rows={pageRows} displayCurrency={currency} startIndex={start} />
+          <SalaryTable rows={finalSalaries} displayCurrency={currency} startIndex={start} />
         )}
       </div>
 

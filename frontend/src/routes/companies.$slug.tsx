@@ -1,14 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getCompanyMeta, SALARIES } from "../lib/mock-data";
+import { fetchCompanyData } from "../lib/api";
 import { convert, formatMoney, levelColor } from "../lib/format";
 import { SalaryTable } from "../components/features/SalaryTable";
 import { Reveal } from "../components/ui/Reveal";
 
 export const Route = createFileRoute("/companies/$slug")({
-  loader: ({ params }) => {
-    const meta = getCompanyMeta(params.slug);
-    if (!meta) throw notFound();
-    return { meta };
+  loader: async ({ params }) => {
+    const data = await fetchCompanyData(params.slug);
+    if (!data) throw notFound();
+    return data;
   },
   head: ({ params, loaderData }) => {
     const name = loaderData?.meta.name ?? params.slug;
@@ -46,19 +46,16 @@ export const Route = createFileRoute("/companies/$slug")({
 });
 
 function CompanyPage() {
-  const { meta } = Route.useLoaderData();
-  const records = SALARIES.filter((r) => r.company_slug === meta.slug);
+  const { meta, salaries, median_tc, level_distribution } = Route.useLoaderData();
+  const records = salaries;
 
   const displayCurrency = records[0]?.currency ?? "USD";
-  const tcs = records.map((r) => convert(r.total_compensation, r.currency, displayCurrency)).sort((a, b) => a - b);
-  const median = tcs[Math.floor(tcs.length / 2)] ?? 0;
+  const tcs = records.map((r: any) => convert(r.total_compensation, r.currency, displayCurrency)).sort((a: number, b: number) => a - b);
   const min = tcs[0] ?? 0;
   const max = tcs[tcs.length - 1] ?? 0;
 
-  // % per level
-  const byLevel = new Map<string, number>();
-  for (const r of records) byLevel.set(r.level_standardized, (byLevel.get(r.level_standardized) ?? 0) + 1);
-  const levelEntries = Array.from(byLevel.entries()).sort((a, b) => b[1] - a[1]);
+  // Level entries from backend distribution object
+  const levelEntries = Object.entries(level_distribution).sort((a: any, b: any) => b[1] - a[1]);
   const totalForBar = records.length || 1;
 
   return (
@@ -94,7 +91,7 @@ function CompanyPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Reveal delay={80}>
-          <Stat label="Median Total Comp" value={formatMoney(median, displayCurrency)} highlight />
+          <Stat label="Median Total Comp" value={formatMoney(convert(median_tc, "INR", displayCurrency), displayCurrency)} highlight />
         </Reveal>
         <Reveal delay={120}>
           <Stat label="TC range" value={`${formatMoney(min, displayCurrency)} — ${formatMoney(max, displayCurrency)}`} />
@@ -112,14 +109,14 @@ function CompanyPage() {
             <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-[#F2F2F2]">
               {levelEntries.map(([lvl, count]) => {
                 const c = levelColor(lvl as never);
-                const pct = (count / totalForBar) * 100;
+                const pct = (Number(count) / totalForBar) * 100;
                 return <div key={lvl} title={`${lvl}: ${count}`} style={{ width: `${pct}%`, background: c.text }} />;
               })}
             </div>
             <div className="mt-3 flex flex-wrap gap-3 text-[12px]">
               {levelEntries.map(([lvl, count]) => {
                 const c = levelColor(lvl as never);
-                const pct = Math.round((count / totalForBar) * 100);
+                const pct = Math.round((Number(count) / totalForBar) * 100);
                 return (
                   <div key={lvl} className="flex items-center gap-1.5 text-[#484848]">
                     <span className="inline-block h-2 w-2 rounded-sm" style={{ background: c.text }} />

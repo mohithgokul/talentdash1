@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Reveal } from "../components/ui/Reveal";
-import { SALARIES, COMPANIES } from "../lib/mock-data";
+import { fetchSalaries, fetchCompanies } from "../lib/api";
 import { convert, formatMoney } from "../lib/format";
 
 export const Route = createFileRoute("/")({
@@ -14,14 +14,25 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
+  loader: async () => {
+    const [salariesRes, companiesRes] = await Promise.all([
+      fetchSalaries({ limit: 100 }),
+      fetchCompanies()
+    ]);
+    return {
+      salaries: salariesRes.data,
+      totalRecords: salariesRes.meta.total,
+      companies: companiesRes
+    };
+  },
   component: Home,
 });
 
 function Home() {
-  const totalRecords = SALARIES.length;
-  const totalCompanies = COMPANIES.length;
-  const allTcUsd = SALARIES.map((r) => convert(r.total_compensation, r.currency, "USD")).sort((a, b) => a - b);
-  const medianUsd = allTcUsd[Math.floor(allTcUsd.length / 2)];
+  const { salaries, totalRecords, companies } = Route.useLoaderData();
+  const totalCompanies = companies.length;
+  const allTcUsd = salaries.map((r) => convert(r.total_compensation, r.currency, "USD")).sort((a, b) => a - b);
+  const medianUsd = allTcUsd.length > 0 ? allTcUsd[Math.floor(allTcUsd.length / 2)] : 0;
 
   return (
     <div>
@@ -73,10 +84,10 @@ function Home() {
           <p className="mt-2 text-[15px] text-[#484848]">Jump into compensation data for any of these.</p>
         </Reveal>
         <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {COMPANIES.slice(0, 8).map((c, i) => {
-            const records = SALARIES.filter((r) => r.company_slug === c.slug);
+          {companies.slice(0, 8).map((c, i) => {
+            const records = salaries.filter((r) => r.company_slug === c.slug);
             const tcs = records.map((r) => convert(r.total_compensation, r.currency, "USD"));
-            const med = tcs.sort((a, b) => a - b)[Math.floor(tcs.length / 2)];
+            const med = tcs.length > 0 ? tcs.sort((a, b) => a - b)[Math.floor(tcs.length / 2)] : 0;
             return (
               <Reveal key={c.slug} delay={i * 40}>
                 <Link

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { COMPANIES } from "../lib/mock-data";
+import { fetchCompanies } from "../lib/api";
 
 const BASE_URL = "";
 
@@ -9,7 +9,8 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const staticPaths = ["/", "/salaries", "/compare"];
-        const dynamic = COMPANIES.map((c) => `/companies/${c.slug}`);
+        const companies = await fetchCompanies();
+        const dynamic = companies.map((c) => `/companies/${c.slug}`);
         const urls = [...staticPaths, ...dynamic]
           .map(
             (p) =>

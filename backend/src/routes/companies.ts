@@ -5,6 +5,22 @@ import { serializeBigInt } from '../lib/serialize'
 const router = Router()
 
 /**
+ * GET /api/companies
+ * Returns list of all companies
+ */
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const companies = await prisma.company.findMany({
+      orderBy: { name: 'asc' }
+    })
+    return res.status(200).json(serializeBigInt(companies))
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return res.status(500).json({ error: true, message })
+  }
+})
+
+/**
  * GET /api/companies/:slug
  * Returns company profile, all salary records, median TC, and level distribution.
  */
